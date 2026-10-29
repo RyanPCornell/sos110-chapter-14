@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EV Charging Feasibility Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:       #FFFFFF;
+      --surface:  #F0F7F4;
+      --surface2: #FFFFFF;
+      --border:   #DDE7E2;
+      --border2:  #C6D8CF;
+      --accent:   #1C7293;
+      --green:    #2D6A4F;
+      --orange:   #B5651D;
+      --violet:   #6D597A;
+      --text:     #15201B;
+      --text2:    #3A4A43;
+      --muted:    #5B6B63;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(175deg, #E8F1EC 0%, #F0F7F4 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Top accent stripe */
+    header::before {
+      content: '';
+      display: block;
+      height: 3px;
+      background: linear-gradient(90deg, #1C7293 0%, #6D597A 50%, #2D6A4F 100%);
+    }
+    /* Ambient glow blobs */
+    .header-inner {
+      padding: 26px 40px 22px;
+      position: relative;
+    }
+    .header-inner::before {
+      content: '';
+      position: absolute;
+      top: -40%; left: -5%;
+      width: 45%; height: 200%;
+      background: radial-gradient(ellipse, rgba(28,114,147,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header-inner::after {
+      content: '';
+      position: absolute;
+      top: -30%; right: 8%;
+      width: 28%; height: 160%;
+      background: radial-gradient(ellipse, rgba(109,89,122,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+      opacity: 0.85;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    header h1 span.h1-accent {
+      background: linear-gradient(90deg, #1C7293 0%, #6D597A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: var(--muted);
+      font-size: 0.81rem;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    header p span.dot { color: var(--border2); }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(109,89,122,0.12);
+      color: var(--violet);
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid rgba(109,89,122,0.22);
+    }
+
+    /* ── LAYOUT ── */
+    .container {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      height: fit-content;
+      position: sticky;
+      top: 24px;
+    }
+    .sidebar-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* form section separator */
+    .section-label {
+      font-size: 0.66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin: 18px 0 9px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(28,114,147,0.15);
+    }
+
+    /* select */
+    .form-group { margin-bottom: 13px; }
+    .form-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 11px;
+      font-size: 0.87rem;
+      font-family: inherit;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235B6B63' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(28,114,147,0.12);
+    }
+    select option { background: #FFFFFF; }
+
+    /* sliders */
+    .slider-group { margin-bottom: 13px; }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+    .slider-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+    }
+    .slider-val {
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+      background: rgba(28,114,147,0.1);
+      border: 1px solid rgba(28,114,147,0.18);
+      padding: 1px 7px;
+      border-radius: 5px;
+      min-width: 46px;
+      text-align: center;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 3px;
+      -webkit-appearance: none;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 7px rgba(28,114,147,0.6);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+      box-shadow: 0 0 13px rgba(28,114,147,0.75);
+    }
+
+    /* radio pills */
+    .radio-group { margin-bottom: 13px; }
+    .radio-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .radio-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.79rem;
+      color: var(--muted);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .radio-pill input[type="radio"] { display: none; }
+    .radio-pill:hover {
+      border-color: rgba(28,114,147,0.4);
+      color: var(--text2);
+      background: rgba(28,114,147,0.04);
+    }
+    .radio-pill.active {
+      border-color: var(--accent);
+      background: rgba(28,114,147,0.09);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .radio-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border2);
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .radio-pill.active .radio-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 5px rgba(28,114,147,0.7);
+    }
+
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* run button */
+    .run-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #1C7293 0%, #6D597A 100%);
+      border: none;
+      border-radius: 9px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      font-family: inherit;
+      color: #FFFFFF;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      letter-spacing: 0.4px;
+    }
+    .run-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(28,114,147,0.3);
+    }
+    .run-btn:active { transform: translateY(0); }
+    .run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .run-hint {
+      text-align: center;
+      font-size: 0.71rem;
+      color: var(--muted);
+      margin-top: 9px;
+      line-height: 1.5;
+    }
+
+    /* ── MAIN ── */
+    .main { display: flex; flex-direction: column; gap: 20px; }
+
+    /* results strip */
+    .results-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.35s, box-shadow 0.35s;
+    }
+    .result-card.has-data {
+      border-color: var(--border2);
+      box-shadow: 0 4px 18px rgba(20,40,30,0.10);
+    }
+    .result-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .result-card.card-prob::before {
+      background: linear-gradient(90deg, #1C7293, #6D597A);
+    }
+    .result-card.card-stops::before {
+      background: linear-gradient(90deg, #B5651D, #A4373A);
+    }
+    .result-card .rc-label {
+      font-size: 0.69rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.1px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .result-card .rc-value {
+      font-size: 3.4rem;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 8px;
+      transition: all 0.4s;
+    }
+    .card-prob .rc-value {
+      background: linear-gradient(135deg, #1C7293, #6D597A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-stops .rc-value {
+      background: linear-gradient(135deg, #B5651D, #A4373A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .result-card .rc-unit {
+      font-size: 0.77rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .prob-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 14px;
+      overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1C7293, #6D597A);
+      border-radius: 2px;
+      transition: width 1.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+
+    /* ── TABS ── */
+    .tab-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      flex: 1;
+    }
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: rgba(20,40,30,0.04);
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 12px 17px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.81rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform 0.2s;
+    }
+    .tab-btn:hover { color: var(--text2); }
+    .tab-btn.active { color: var(--accent); font-weight: 600; }
+    .tab-btn.active::after { transform: scaleX(1); }
+
+    .tab-content { padding: 26px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .tab-panel h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      margin-top: 22px;
+      padding-left: 10px;
+      border-left: 2px solid var(--accent);
+    }
+    .tab-panel h3:first-child { margin-top: 0; }
+    .tab-panel p {
+      font-size: 0.87rem;
+      color: var(--text2);
+      line-height: 1.8;
+      margin-bottom: 10px;
+    }
+    .tab-panel a { color: var(--accent); text-decoration: none; }
+    .tab-panel a:hover { text-decoration: underline; }
+
+    /* chart wrapper — gives chart a styled container */
+    .chart-wrapper {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 16px 16px;
+    }
+    .chart-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+    .chart-subtitle {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .chart-subtitle .highlight {
+      color: var(--orange);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    /* info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .info-tile {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 15px;
+    }
+    .info-tile .it-label {
+      font-size: 0.67rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .info-tile .it-value {
+      font-size: 1.45rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--green);
+      letter-spacing: -0.5px;
+    }
+    .info-tile .it-unit {
+      font-size: 0.73rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* car photo layout */
+    .car-photo-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .car-photo-wrap {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .car-photo {
+      width: 100%;
+      display: block;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      transition: opacity 0.4s;
+    }
+    .car-photo.loading { opacity: 0; }
+    .car-photo-caption {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 7px 10px;
+      border-top: 1px solid var(--border);
+    }
+    .car-photo-caption a { color: var(--muted); }
+    .car-photo-caption a:hover { color: var(--accent); }
+    .car-info-stats {
+      margin-top: 0 !important;
+      align-content: start;
+    }
+    @media (max-width: 700px) {
+      .car-photo-row { grid-template-columns: 1fr; }
+    }
+
+    /* placeholder */
+    .placeholder {
+      text-align: center;
+      padding: 50px 24px;
+      color: var(--muted);
+    }
+    .placeholder .ph-icon { font-size: 2.6rem; margin-bottom: 12px; opacity: 0.3; }
+    .placeholder p { font-size: 0.84rem; }
+
+    /* sources list */
+    .source-list { list-style: none; }
+    .source-list li {
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.86rem;
+      color: var(--text2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .source-list li:last-child { border-bottom: none; }
+    .source-list li strong { color: var(--text); font-weight: 600; }
+
+    /* ── LOADING ── */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.90);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(8px);
+    }
+    .loading-overlay.active { display: flex; }
+    .spinner-ring {
+      width: 48px; height: 48px;
+      border: 2.5px solid var(--border2);
+      border-top-color: var(--accent);
+      border-right-color: var(--violet);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-label {
+      font-size: 0.88rem;
+      color: var(--text2);
+      letter-spacing: 0.4px;
+      font-weight: 500;
+    }
+    .loading-sub { font-size: 0.75rem; color: var(--muted); }
+
+    @media (max-width: 960px) {
+      .container { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .results-row { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── MODE TOGGLE ── */
+    .mode-toggle {
+      display: flex;
+      gap: 6px;
+      margin-top: 16px;
+    }
+    .mode-btn {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .mode-btn:hover { color: var(--text2); border-color: var(--accent); }
+    .mode-btn.active {
+      background: rgba(28,114,147,0.12);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .mode-btn.active.std {
+      background: rgba(45,106,79,0.12);
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .mode-layout { display: none; }
+    .mode-layout.active { display: block; }
+
+    /* standard mode badge on header */
+    .header-badge.std-badge {
+      background: rgba(45,106,79,0.12);
+      color: var(--green);
+      border-color: rgba(45,106,79,0.25);
+    }
+
+    /* standard mode result card accent */
+    .result-card.card-std-prob::before {
+      background: linear-gradient(90deg, #2D6A4F, #1C7293);
+    }
+    .result-card.card-std-stops::before {
+      background: linear-gradient(90deg, #B5651D, #A4373A);
+    }
+    .card-std-prob .rc-value {
+      background: linear-gradient(135deg, #2D6A4F, #1C7293);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-std-stops .rc-value {
+      background: linear-gradient(135deg, #B5651D, #A4373A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .prob-fill.std { background: linear-gradient(90deg, #2D6A4F, #1C7293); }
+
+    /* speed radio for standard mode */
+    .speed-radio { margin-bottom: 13px; }
+    .speed-pills { display: flex; flex-direction: column; gap: 5px; }
+
+    /* Embed mode (?embed=1): hide the app's own header so a host slide's bar is the only header */
+    body.embed header { display: none !important; }
+    body.embed { padding-top: 0 !important; }
+  </style>
+  <script>
+    // Non-destructive embed mode: add body.embed when ?embed=1 is present
+    if (new URLSearchParams(location.search).has('embed')) {
+      document.addEventListener('DOMContentLoaded', function(){ document.body.classList.add('embed'); });
+    }
+  </script>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner-ring"></div>
+  <div class="loading-label">Running Monte Carlo simulation…</div>
+  <div class="loading-sub" id="loading-sub">Simulating driving months</div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <div class="header-eyebrow">Transportation Energy Policy Tool</div>
+    <h1>EV Charging <span class="h1-accent">Feasibility</span> Calculator <span class="header-badge" id="mode-badge">Advanced</span></h1>
+    <p id="header-sub">
+      Monte Carlo simulation
+      <span class="dot">·</span>
+      Negative binomial daily mileage
+      <span class="dot">·</span>
+      Designed for researchers &amp; policymakers
+    </p>
+    <div class="mode-toggle">
+      <button class="mode-btn" onclick="switchMode('std')" id="btn-std">Standard</button>
+      <button class="mode-btn active" onclick="switchMode('adv')" id="btn-adv">Advanced</button>
+    </div>
+  </div>
+</header>
+
+<!-- Advanced mode layout -->
+<div class="mode-layout active" id="layout-adv">
+<div class="container">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Configuration</div>
+
+    <div class="section-label">Vehicle</div>
+    <div class="form-group">
+      <label class="form-label">Car Model</label>
+      <select id="car_type">
+        <option value="1">Chevrolet Bolt</option>
+        <option value="2">Ford Mustang Mach-E Premium Extended</option>
+        <option value="3">Kia EV-6 GT-Line</option>
+        <option value="4">Lucid Air Dream Edition</option>
+        <option value="5">Nissan Leaf SL Plus</option>
+        <option value="6">Rivian R1T</option>
+        <option value="7" selected>Tesla Model 3 LR</option>
+        <option value="8">Tesla Model Y LR</option>
+        <option value="9">Tesla Model X</option>
+        <option value="10">Volkswagen ID.4</option>
+      </select>
+    </div>
+
+    <div class="section-label">Charging</div>
+    <div class="radio-group">
+      <label class="form-label">Charger Level</label>
+      <div class="radio-row">
+        <label class="radio-pill active" id="pill-l1">
+          <input type="radio" name="charger_type" value="1" checked />
+          <span class="radio-dot"></span>Level 1
+        </label>
+        <label class="radio-pill" id="pill-l2">
+          <input type="radio" name="charger_type" value="5.81" />
+          <span class="radio-dot"></span>Level 2 (7.6 kW)
+        </label>
+      </div>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Avg Miles / Day</span>
+        <span class="slider-val" id="mileage-val">30 mi</span>
+      </div>
+      <input type="range" id="mileage" min="10" max="70" value="30" />
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Hours Available to Charge</span>
+        <span class="slider-val" id="hours-val">10 hrs</span>
+      </div>
+      <input type="range" id="hours" min="0" max="24" value="10" />
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Max Charge Level</span>
+        <span class="slider-val" id="maxcharge-val">80%</span>
+      </div>
+      <input type="range" id="max_chargepercentage" min="20" max="100" value="80" />
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Fast-Charge Threshold</span>
+        <span class="slider-val" id="mincharge-val">20%</span>
+      </div>
+      <input type="range" id="min_chargepercentage" min="5" max="50" value="20" />
+    </div>
+
+    <div class="section-label">Conditions</div>
+    <div class="radio-group">
+      <label class="form-label">Weather Impact</label>
+      <div class="radio-row" style="flex-direction:column;">
+        <label class="radio-pill"><input type="radio" name="coldweather" value="0" /><span class="radio-dot"></span>Extreme Heat (~104°F)</label>
+        <label class="radio-pill active"><input type="radio" name="coldweather" value="1" checked /><span class="radio-dot"></span>Average Temperature</label>
+        <label class="radio-pill"><input type="radio" name="coldweather" value="2" /><span class="radio-dot"></span>Cold (~32°F)</label>
+        <label class="radio-pill"><input type="radio" name="coldweather" value="3" /><span class="radio-dot"></span>Extreme Cold (~4°F)</label>
+      </div>
+    </div>
+
+    <div class="radio-group">
+      <label class="form-label">Daily Mileage Variability</label>
+      <div class="radio-row" style="flex-direction:column;">
+        <label class="radio-pill"><input type="radio" name="variability" value="100" /><span class="radio-dot"></span>Low Variability</label>
+        <label class="radio-pill active"><input type="radio" name="variability" value="4.28" checked /><span class="radio-dot"></span>Average</label>
+        <label class="radio-pill"><input type="radio" name="variability" value="2" /><span class="radio-dot"></span>High Variability</label>
+      </div>
+    </div>
+
+    <div class="section-label">Simulation</div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Iterations</span>
+        <span class="slider-val" id="iter-val">500</span>
+      </div>
+      <input type="range" id="iterations" min="1" max="2000" value="500" />
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="run-btn" id="run-btn" onclick="runModel()">⚡ Run Simulation</button>
+    <p class="run-hint">≥ 500 iterations recommended for stable results.<br>At 200, probability estimates can vary ±10% between runs.</p>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Result cards -->
+    <div class="results-row">
+      <div class="result-card card-prob" id="card-prob">
+        <div class="rc-label">Probability Home Charging is Sufficient</div>
+        <div class="rc-value" id="probability">—</div>
+        <div class="rc-unit">% chance you won't need a fast charger this month</div>
+        <div class="prob-track"><div class="prob-fill" id="prob-fill"></div></div>
+      </div>
+      <div class="result-card card-stops" id="card-stops">
+        <div class="rc-label">Estimated Monthly Fast-Charger Stops</div>
+        <div class="rc-value" id="stops">—</div>
+        <div class="rc-unit">avg Level 3 stops per month at your entered mileage</div>
+      </div>
+    </div>
+
+    <!-- Tab panel -->
+    <div class="tab-card">
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('info',this)">General Info</button>
+        <button class="tab-btn" onclick="switchTab('stops-plot',this)">Stops Chart</button>
+        <button class="tab-btn" onclick="switchTab('prob-plot',this)">Probability Chart</button>
+        <button class="tab-btn" onclick="switchTab('car-info',this)">Car Info</button>
+        <button class="tab-btn" onclick="switchTab('gas-compare',this)">Gas Comparison</button>
+        <button class="tab-btn" onclick="switchTab('model-explain',this)">How It Works</button>
+        <button class="tab-btn" onclick="switchTab('sources',this)">Sources</button>
+      </div>
+      <div class="tab-content">
+
+        <!-- General Info -->
+        <div class="tab-panel active" id="tab-info">
+          <h3>What is the purpose of this calculator?</h3>
+          <p>This is an advanced charging calculator that allows the user to factor in a variety of variables to determine the feasibility of different charging scenarios. It is aimed at policymakers, researchers, and other expert users.</p>
+          <h3>What will the model tell us?</h3>
+          <p>The model simulates hundreds of months of driving and calculates how likely it is that home-charging would sufficiently charge your car over a month of driving. A probability of 99% indicates that there is a 99% chance you would <em>not</em> need to visit a Level 3 fast-charger during a normal month.</p>
+          <p>A probability of 10% indicates the driver would likely need to stop at a high-speed charger one or more times during the month. The model also estimates the average number of Level 3 stops required per month across all simulated months.</p>
+          <p>Configure your vehicle, charger type, driving habits, and conditions in the panel on the left, then click <strong>Run Simulation</strong>. Use at least <strong>500 iterations</strong> for stable results — at lower counts (e.g. 200), probability estimates can differ by 10–14 percentage points between runs purely from random sampling, even when both runs are statistically correct.</p>
+        </div>
+
+        <!-- Stops chart -->
+        <div class="tab-panel" id="tab-stops-plot">
+          <div class="placeholder" id="ph-stops">
+            <div class="ph-icon">📊</div>
+            <p>Run the simulation to see the stops chart.</p>
+          </div>
+          <div class="chart-wrapper" id="stops-wrap" style="display:none;">
+            <div class="chart-title">Estimated Level 3 Fast-Charger Stops per Month</div>
+            <div class="chart-subtitle">By average daily miles driven &nbsp;·&nbsp; Your selection: <span class="highlight" id="stops-miles-label">—</span> mi/day</div>
+            <canvas id="stops-chart" style="max-height:340px;"></canvas>
+          </div>
+        </div>
+
+        <!-- Probability chart -->
+        <div class="tab-panel" id="tab-prob-plot">
+          <div class="placeholder" id="ph-prob">
+            <div class="ph-icon">📈</div>
+            <p>Run the simulation to see the probability chart.</p>
+          </div>
+          <div class="chart-wrapper" id="prob-wrap" style="display:none;">
+            <div class="chart-title">Probability Home Charging is Sufficient (%)</div>
+            <div class="chart-subtitle">By average daily miles driven &nbsp;·&nbsp; Your selection: <span class="highlight" id="prob-miles-label">—</span> mi/day</div>
+            <canvas id="prob-chart" style="max-height:340px;"></canvas>
+          </div>
+        </div>
+
+        <!-- Car Info -->
+        <div class="tab-panel" id="tab-car-info">
+          <div class="placeholder" id="ph-car">
+            <div class="ph-icon">🚗</div>
+            <p>Run the simulation to see vehicle details.</p>
+          </div>
+          <div id="car-info-content" style="display:none;">
+            <div class="car-photo-row">
+              <div class="car-photo-wrap">
+                <img id="ci-photo" src="" alt="" class="car-photo" />
+                <div class="car-photo-caption">
+                  Image via <a href="https://commons.wikimedia.org" target="_blank">Wikimedia Commons</a>
+                </div>
+              </div>
+              <div class="info-grid car-info-stats">
+                <div class="info-tile">
+                  <div class="it-label">Car Model</div>
+                  <div class="it-value" id="ci-name" style="font-size:1.05rem; letter-spacing:0;">—</div>
+                </div>
+                <div class="info-tile">
+                  <div class="it-label">Effective Max Range</div>
+                  <div class="it-value" id="ci-range">—</div>
+                  <div class="it-unit">miles (at your charge % setting)</div>
+                </div>
+                <div class="info-tile">
+                  <div class="it-label">Level 1 Charge Rate</div>
+                  <div class="it-value" id="ci-rate">—</div>
+                  <div class="it-unit">miles added per hour</div>
+                </div>
+                <div class="info-tile">
+                  <div class="it-label">Miles Added Per Session</div>
+                  <div class="it-value" id="ci-daily">—</div>
+                  <div class="it-unit">miles per nightly charge</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gas Comparison -->
+        <div class="tab-panel" id="tab-gas-compare">
+          <div class="placeholder" id="ph-gas">
+            <div class="ph-icon">⛽</div>
+            <p>Run the simulation to see gas comparison data.</p>
+          </div>
+          <div id="gas-content" style="display:none;">
+            <p>Time estimates reflect actual driver "time cost" — plug-in time is counted, but passive at-home charging time is not.</p>
+            <div class="info-grid">
+              <div class="info-tile">
+                <div class="it-label">Gas Stops / Month</div>
+                <div class="it-value" id="g-stops">—</div>
+                <div class="it-unit">stops at a gas station</div>
+              </div>
+              <div class="info-tile">
+                <div class="it-label">Time Spent Getting Gas</div>
+                <div class="it-value" id="g-time">—</div>
+                <div class="it-unit">minutes per month</div>
+              </div>
+              <div class="info-tile" style="grid-column: 1 / -1;">
+                <div class="it-label">EV Active Charging Time</div>
+                <div class="it-value" id="g-evtime">—</div>
+                <div class="it-unit">minutes per month (plug-in + any fast-charger stops)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Explanation -->
+        <div class="tab-panel" id="tab-model-explain">
+          <h3>How does the model work?</h3>
+          <p>The model simulates hundreds of months of driving. Each month's daily mileage is drawn from a <strong>negative binomial distribution</strong> parameterized by your average mileage and the variability setting — calibrated on national driving survey data. The shape and spread of each simulated month reflects realistic day-to-day variation.</p>
+          <p>Each simulated day, the car's range decreases by the day's miles. If the battery falls to the fast-charge threshold, a Level 3 stop is tallied and the battery resets to maximum range. At the end of each day, home charging is added (capped at maximum range). The simulation repeats for all 31 days of a month.</p>
+          <p>The <strong>probability</strong> output is the share of simulated months where the car never hit the fast-charge threshold. The <strong>stops</strong> output is the mean number of Level 3 stops across all simulated months. Charts show these values across the full range of daily-miles scenarios (10–70 mi/day).</p>
+          <h3>How is the Level 1 charge rate calculated?</h3>
+          <p>The model assumes a standard outlet at 110V / 12A = 1.32 kW/hr. Per-mile efficiency values are from EPA data, which already accounts for charging losses.</p>
+        </div>
+
+        <!-- Sources -->
+        <div class="tab-panel" id="tab-sources">
+          <ul class="source-list">
+            <li><strong>Charging Speed Data</strong> <a href="https://docs.google.com/spreadsheets/d/1z8s3dS7M-0fNhBK1F9vXiWP6OsV5lmBoGNW4uCpERVQ/edit#gid=735351678" target="_blank">View spreadsheet →</a></li>
+            <li><strong>Cold/Warm Weather Impact</strong> <a href="https://www.geotab.com/blog/ev-range/" target="_blank">Geotab EV Range Study →</a></li>
+            <li><strong>Gasoline Car Fuel Economy</strong> <a href="https://afdc.energy.gov/data/10310" target="_blank">AFDC Data →</a></li>
+            <li><strong>Gas Station Temporal Data</strong> <a href="https://blog-content.gasbuddy.com/uploads/2018/10/GasBuddy-Q3_2018-Foot-Traffic-Report.pdf" target="_blank">GasBuddy Q3 2018 Report →</a></li>
+            <li><strong>Macro Travel Data</strong> <a href="https://www.nrel.gov/transportation/secure-transportation-data/tsdc-2017-nhts-arizona-add-on.html" target="_blank">NREL 2017 NHTS Arizona →</a></li>
+            <li><strong>Range &amp; Efficiency Data</strong> <a href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=3&year1=2021&year2=2023&vtype=Electric&srchtyp=newAfv&pageno=1&rowLimit=50" target="_blank">FuelEconomy.gov →</a> &amp; <a href="https://insideevs.com/news/659713/2023-tesla-modelx-epa-range-price/" target="_blank">InsideEVs →</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div><!-- /.container -->
+</div><!-- /#layout-adv -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STANDARD MODE LAYOUT
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mode-layout" id="layout-std">
+<div class="container">
+
+  <!-- Standard sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Configuration</div>
+
+    <div class="section-label">Vehicle</div>
+    <div class="form-group">
+      <label class="form-label">Car Model</label>
+      <select id="s-car_type">
+        <option value="1">Chevrolet Bolt</option>
+        <option value="2">Ford Mustang Mach-E Premium Extended</option>
+        <option value="3">Kia EV-6 GT-Line</option>
+        <option value="4">Lucid Air Dream Edition</option>
+        <option value="5">Nissan Leaf SL Plus</option>
+        <option value="6">Rivian R1T</option>
+        <option value="7" selected>Tesla Model 3 LR</option>
+        <option value="8">Tesla Model Y LR</option>
+        <option value="9">Tesla Model X</option>
+        <option value="10">Volkswagen ID.4</option>
+      </select>
+    </div>
+
+    <div class="section-label">Driving &amp; Charging</div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Avg Miles / Day</span>
+        <span class="slider-val" id="s-mileage-val">30 mi</span>
+      </div>
+      <input type="range" id="s-mileage" min="0" max="70" value="30" />
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">Hours Available to Charge</span>
+        <span class="slider-val" id="s-hours-val">10 hrs</span>
+      </div>
+      <input type="range" id="s-hours" min="0" max="24" value="10" />
+    </div>
+
+    <div class="section-label">Model Precision</div>
+    <div class="speed-radio">
+      <label class="form-label">Model Speed</label>
+      <div class="speed-pills">
+        <label class="radio-pill active">
+          <input type="radio" name="s-iterations" value="400" checked />
+          <span class="radio-dot"></span>Standard (400 iterations)
+        </label>
+        <label class="radio-pill">
+          <input type="radio" name="s-iterations" value="1000" />
+          <span class="radio-dot"></span>Higher Precision (1000 iterations)
+        </label>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="run-btn" id="s-run-btn" onclick="runStandardModel()"
+            style="background: linear-gradient(135deg,#2D6A4F,#1C7293);">
+      Run Simulation
+    </button>
+    <p class="run-hint">Level 1 (standard outlet) charging only.<br>Higher Precision may take ~10 seconds.</p>
+  </aside>
+
+  <!-- Standard main -->
+  <main class="main">
+
+    <div class="results-row">
+      <div class="result-card card-std-prob" id="s-card-prob">
+        <div class="rc-label">Probability Standard Outlet is Sufficient</div>
+        <div class="rc-value" id="s-probability">—</div>
+        <div class="rc-unit">% chance you won't need a fast charger this month</div>
+        <div class="prob-track"><div class="prob-fill std" id="s-prob-fill"></div></div>
+      </div>
+      <div class="result-card card-std-stops" id="s-card-stops">
+        <div class="rc-label">Estimated Monthly Fast-Charger Stops</div>
+        <div class="rc-value" id="s-stops">—</div>
+        <div class="rc-unit">avg Level 3 stops per month at your entered mileage</div>
+      </div>
+    </div>
+
+    <div class="tab-card">
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchStdTab('s-info',this)">General Info</button>
+        <button class="tab-btn" onclick="switchStdTab('s-stops-plot',this)">Stops Chart</button>
+        <button class="tab-btn" onclick="switchStdTab('s-prob-plot',this)">Probability Chart</button>
+        <button class="tab-btn" onclick="switchStdTab('s-car-info',this)">Car Info</button>
+        <button class="tab-btn" onclick="switchStdTab('s-gas-compare',this)">Gas Comparison</button>
+        <button class="tab-btn" onclick="switchStdTab('s-model-explain',this)">How It Works</button>
+        <button class="tab-btn" onclick="switchStdTab('s-sources',this)">Sources</button>
+      </div>
+      <div class="tab-content">
+
+        <div class="tab-panel active" id="tab-s-info">
+          <h3>Did you know EVs can charge from a standard outlet?</h3>
+          <p>This type of charging (Level 1) is slow, but incredibly practical — drivers charge while they sleep or while the car sits at home. No special equipment needed beyond a standard 110V wall outlet.</p>
+          <h3>What will the model tell us?</h3>
+          <p>The model calculates how likely it is that a standard outlet would fully cover your monthly charging needs. A probability of 99% means there is a 99% chance you would <em>not</em> need to visit a fast-charger during a normal month.</p>
+          <p>A probability of 10% means Level 1 charging alone would likely be insufficient and the driver would need at least one fast-charger stop per month. The second output estimates the average number of those stops.</p>
+          <p>Select your vehicle, enter your typical daily miles and available charging hours, then click <strong>Run Simulation</strong>.</p>
+        </div>
+
+        <div class="tab-panel" id="tab-s-stops-plot">
+          <div class="placeholder" id="s-ph-stops">
+            <div class="ph-icon">📊</div>
+            <p>Run the simulation to see the stops chart.</p>
+          </div>
+          <div class="chart-wrapper" id="s-stops-wrap" style="display:none;">
+            <div class="chart-title">Estimated Level 3 Fast-Charger Stops per Month</div>
+            <div class="chart-subtitle">By average daily miles driven &nbsp;·&nbsp; Your selection: <span class="highlight" id="s-stops-miles-label">—</span> mi/day</div>
+            <canvas id="s-stops-chart" style="max-height:340px;"></canvas>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-s-prob-plot">
+          <div class="placeholder" id="s-ph-prob">
+            <div class="ph-icon">📈</div>
+            <p>Run the simulation to see the probability chart.</p>
+          </div>
+          <div class="chart-wrapper" id="s-prob-wrap" style="display:none;">
+            <div class="chart-title">Probability Standard Outlet Charging is Sufficient (%)</div>
+            <div class="chart-subtitle">By average daily miles driven &nbsp;·&nbsp; Your selection: <span class="highlight" id="s-prob-miles-label">—</span> mi/day</div>
+            <canvas id="s-prob-chart" style="max-height:340px;"></canvas>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-s-car-info">
+          <div class="placeholder" id="s-ph-car">
+            <div class="ph-icon">🚗</div>
+            <p>Run the simulation to see vehicle details.</p>
+          </div>
+          <div id="s-car-info-content" style="display:none;">
+            <div class="car-photo-row">
+              <div class="car-photo-wrap">
+                <img id="s-ci-photo" src="" alt="" class="car-photo" />
+                <div class="car-photo-caption">Image via <a href="https://commons.wikimedia.org" target="_blank">Wikimedia Commons</a></div>
+              </div>
+              <div class="info-grid car-info-stats">
+                <div class="info-tile">
+                  <div class="it-label">Car Model</div>
+                  <div class="it-value" id="s-ci-name" style="font-size:1.05rem;letter-spacing:0;">—</div>
+                </div>
+                <div class="info-tile">
+                  <div class="it-label">Full Range</div>
+                  <div class="it-value" id="s-ci-range">—</div>
+                  <div class="it-unit">miles (EPA estimate)</div>
+                </div>
+                <div class="info-tile">
+                  <div class="it-label">Level 1 Charge Rate</div>
+                  <div class="it-value" id="s-ci-rate">—</div>
+                  <div class="it-unit">miles added per hour</div>
+                </div>
+                <div class="info-tile">
+                  <div class="it-label">Miles Added Per Session</div>
+                  <div class="it-value" id="s-ci-daily">—</div>
+                  <div class="it-unit">miles per nightly charge</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-s-gas-compare">
+          <div class="placeholder" id="s-ph-gas">
+            <div class="ph-icon">⛽</div>
+            <p>Run the simulation to see gas comparison data.</p>
+          </div>
+          <div id="s-gas-content" style="display:none;">
+            <p>Time estimates reflect actual driver "time cost" — plug-in time is counted, but passive at-home charging time is not.</p>
+            <div class="info-grid">
+              <div class="info-tile">
+                <div class="it-label">Gas Stops / Month</div>
+                <div class="it-value" id="s-g-stops">—</div>
+                <div class="it-unit">stops at a gas station</div>
+              </div>
+              <div class="info-tile">
+                <div class="it-label">Time Spent Getting Gas</div>
+                <div class="it-value" id="s-g-time">—</div>
+                <div class="it-unit">minutes per month</div>
+              </div>
+              <div class="info-tile" style="grid-column:1/-1;">
+                <div class="it-label">EV Active Charging Time</div>
+                <div class="it-value" id="s-g-evtime">—</div>
+                <div class="it-unit">minutes per month (plug-in + any fast-charger stops)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-s-model-explain">
+          <h3>How does the model work?</h3>
+          <p>The model simulates hundreds of months of driving. Each month's daily mileage is drawn from a <strong>negative binomial distribution</strong> calibrated on national driving survey data, capturing realistic day-to-day variation.</p>
+          <p>Each simulated day the car's range decreases by the day's miles. If the battery falls to <strong>40 miles remaining</strong>, a Level 3 stop is tallied and the battery resets to full range. Home charging (Level 1) is then added at the end of each day. The probability output is the share of months with no fast-charger stop needed.</p>
+          <h3>What is "Model Speed"?</h3>
+          <p><strong>Standard</strong> runs 400 simulated months — fast and suitable for most comparisons. <strong>Higher Precision</strong> runs 1,000 months, reducing run-to-run variation but taking significantly longer.</p>
+          <h3>How is the Level 1 charge rate calculated?</h3>
+          <p>The model assumes a standard outlet at 110V / 12A = 1.32 kW/hr. EPA efficiency data is used directly, so charging losses are already accounted for.</p>
+        </div>
+
+        <div class="tab-panel" id="tab-s-sources">
+          <ul class="source-list">
+            <li><strong>Charging Speed Data</strong> <a href="https://docs.google.com/spreadsheets/d/1z8s3dS7M-0fNhBK1F9vXiWP6OsV5lmBoGNW4uCpERVQ/edit#gid=735351678" target="_blank">View spreadsheet →</a></li>
+            <li><strong>Gasoline Car Fuel Economy</strong> <a href="https://afdc.energy.gov/data/10310" target="_blank">AFDC Data →</a></li>
+            <li><strong>Gas Station Temporal Data</strong> <a href="https://blog-content.gasbuddy.com/uploads/2018/10/GasBuddy-Q3_2018-Foot-Traffic-Report.pdf" target="_blank">GasBuddy Q3 2018 Report →</a></li>
+            <li><strong>Macro Travel Data</strong> <a href="https://www.nrel.gov/transportation/secure-transportation-data/tsdc-2017-nhts-arizona-add-on.html" target="_blank">NREL 2017 NHTS Arizona →</a></li>
+            <li><strong>Range &amp; Efficiency Data</strong> <a href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=3&year1=2021&year2=2023&vtype=Electric&srchtyp=newAfv&pageno=1&rowLimit=50" target="_blank">FuelEconomy.gov →</a> &amp; <a href="https://insideevs.com/news/659713/2023-tesla-modelx-epa-range-price/" target="_blank">InsideEVs →</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</div><!-- /.container -->
+</div><!-- /#layout-std -->
+
+<script>
+// =====================================================================
+// STATISTICS — negative binomial via gamma-Poisson mixture
+// Matches R's rnbinom(n, size=r, mu=mu) parameterization exactly
+// =====================================================================
+
+function randn_bm() {
+  const u = Math.random() + 1e-12, v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function sampleGamma(shape, scale) {
+  // Marsaglia & Tsang (2000)
+  if (shape < 1) {
+    return sampleGamma(1 + shape, scale) * Math.pow(Math.random() + 1e-12, 1 / shape);
+  }
+  const d = shape - 1 / 3, c = 1 / Math.sqrt(9 * d);
+  for (;;) {
+    let x = randn_bm(), v = 1 + c * x;
+    if (v <= 0) continue;
+    v = v * v * v;
+    const u = Math.random();
+    const x2 = x * x;
+    if (u < 1 - 0.0331 * x2 * x2) return d * v * scale;
+    if (Math.log(u) < 0.5 * x2 + d * (1 - v + Math.log(v))) return d * v * scale;
+  }
+}
+
+function samplePoisson(lambda) {
+  if (lambda <= 0) return 0;
+  if (lambda < 30) {
+    const L = Math.exp(-lambda);
+    let k = 0, p = 1;
+    do { k++; p *= Math.random(); } while (p > L);
+    return k - 1;
+  }
+  // Ptychon (1992) for large lambda
+  return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * randn_bm()));
+}
+
+function rnbinom(n, size, mu) {
+  const scale = mu / size;
+  const out = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    out[i] = samplePoisson(sampleGamma(size, scale));
+  }
+  return out;
+}
+
+// =====================================================================
+// SIMULATION — faithful port of the R miles_sim() function
+// =====================================================================
+
+function milesSim(EV_meandriving, EV_maxrange, EV_charge, EV_variability, EV_minrange) {
+  let counter = 0;
+  let EV_range = EV_maxrange;
+
+  const dailyMileageSim = rnbinom(31, EV_variability, EV_meandriving);
+
+  for (let i = 0; i < 31; i++) {
+    const daily_drive = dailyMileageSim[Math.floor(Math.random() * 31)];
+
+    EV_range -= daily_drive;
+
+    if (EV_range < EV_minrange) EV_range = EV_minrange;
+    if (EV_range === EV_minrange) counter++;
+    if (EV_range === EV_minrange) EV_range = EV_maxrange;
+    if (EV_range > EV_maxrange)  EV_range = EV_maxrange;
+
+    EV_range += EV_charge;
+    if (EV_range > EV_maxrange) EV_range = EV_maxrange;
+  }
+  return counter;
+}
+
+// =====================================================================
+// CHART HELPERS  — vivid gradient line charts with reference marker
+// =====================================================================
+let stopsChart = null, probChart = null;
+
+// Custom plugin: draws a vertical reference line at the user's mileage
+const refLinePlugin = {
+  id: 'refLine',
+  afterDraw(chart) {
+    const refX = chart.config.options._refMile;
+    if (refX == null) return;
+    const xScale = chart.scales.x;
+    const yScale = chart.scales.y;
+    const xPx = xScale.getPixelForValue(refX);
+    const { ctx } = chart;
+    ctx.save();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = 'rgba(181,101,29,0.75)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xPx, yScale.top);
+    ctx.lineTo(xPx, yScale.bottom);
+    ctx.stroke();
+    // Label — drawn inside the chart area to avoid canvas clipping
+    ctx.setLineDash([]);
+    ctx.font = '600 11px Outfit, sans-serif';
+    ctx.textAlign = 'center';
+    const labelText = refX + ' mi/day';
+    const labelW = ctx.measureText(labelText).width + 10;
+    const labelX = xPx, labelY = yScale.top + 14;
+    // pill background
+    ctx.fillStyle = 'rgba(240,247,244,0.95)';
+    ctx.beginPath();
+    ctx.roundRect(labelX - labelW/2, labelY - 10, labelW, 18, 4);
+    ctx.fill();
+    // text
+    ctx.fillStyle = '#B5651D';
+    ctx.fillText(labelText, labelX, labelY + 3);
+    ctx.restore();
+  }
+};
+Chart.register(refLinePlugin);
+
+function buildChart(canvasId, existingChart, data, yLabel, lineColor, gradColor1, gradColor2, refMile, yMax) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  if (existingChart) existingChart.destroy();
+
+  // Build vertical gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight || 320);
+  grad.addColorStop(0,   gradColor1);
+  grad.addColorStop(0.5, gradColor2);
+  grad.addColorStop(1,   'rgba(0,0,0,0)');
+
+  // Highlight the user's selected data point
+  const pointColors = data.map(d =>
+    d.x === refMile ? '#15201B' : lineColor
+  );
+  const pointRadii = data.map(d => d.x === refMile ? 8 : 4.5);
+  const pointBorders = data.map(d => d.x === refMile ? 2.5 : 0);
+
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.x),
+      datasets: [{
+        data: data.map(d => d.y),
+        borderColor: lineColor,
+        borderWidth: 2.5,
+        backgroundColor: grad,
+        fill: true,
+        tension: 0.35,
+        cubicInterpolationMode: 'monotone',
+        pointRadius: pointRadii,
+        pointHoverRadius: 9,
+        pointBackgroundColor: pointColors,
+        pointBorderColor: lineColor,
+        pointBorderWidth: pointBorders,
+        pointHoverBackgroundColor: '#15201B',
+        pointHoverBorderColor: lineColor,
+        pointHoverBorderWidth: 2.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      _refMile: refMile,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#FFFFFF',
+          borderColor: '#C6D8CF',
+          borderWidth: 1,
+          titleColor: '#15201B',
+          bodyColor: '#3A4A43',
+          padding: 12,
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 12 },
+          callbacks: {
+            title: items => `${items[0].label} miles/day`,
+            label: ctx => `  ${yLabel.split('(')[0].trim()}: ${parseFloat(ctx.raw).toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Average Daily Miles Driven',
+            color: '#5B6B63',
+            font: { size: 11, weight: '600', family: 'Outfit' },
+            padding: { top: 8 }
+          },
+          grid: { color: 'rgba(221,231,226,0.95)' },
+          ticks: {
+            color: '#5B6B63',
+            font: { size: 11 },
+            maxTicksLimit: 13
+          }
+        },
+        y: {
+          beginAtZero: true,
+          // a percentage axis is capped at 100 — Chart.js would otherwise pad
+          // the scale past the data and tick up to 125%
+          ...(yMax != null ? { max: yMax } : {}),
+          title: {
+            display: true,
+            text: yLabel,
+            color: '#5B6B63',
+            font: { size: 11, weight: '600', family: 'Outfit' },
+            padding: { bottom: 8 }
+          },
+          grid: { color: 'rgba(221,231,226,0.95)' },
+          ticks: {
+            color: '#5B6B63',
+            font: { size: 11 }
+          }
+        }
+      },
+      animation: {
+        duration: 600,
+        easing: 'easeOutQuart'
+      }
+    }
+  });
+}
+
+// =====================================================================
+// MAIN RUN FUNCTION
+// =====================================================================
+
+async function runModel() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  document.getElementById('loading').classList.add('active');
+
+  // yield to browser so loading overlay renders
+  await new Promise(r => setTimeout(r, 60));
+
+  // ── Read inputs ──
+  const carType      = parseInt(document.getElementById('car_type').value);
+  // Use parseInt to match R's as.integer() — truncates "5.81" → 5
+  const chargerType  = parseInt(document.querySelector('input[name="charger_type"]:checked').value, 10);
+  const dailyMiles   = parseInt(document.getElementById('mileage').value);
+  const chargeHours  = parseInt(document.getElementById('hours').value);
+  const maxChargePct = parseInt(document.getElementById('max_chargepercentage').value);
+  const minChargePct = parseInt(document.getElementById('min_chargepercentage').value);
+  const weatherVal   = parseInt(document.querySelector('input[name="coldweather"]:checked').value);
+  const variability  = parseFloat(document.querySelector('input[name="variability"]:checked').value);
+  const trials       = parseInt(document.getElementById('iterations').value);
+
+  // ── Car database ──
+  // wiki: Wikipedia article slug used to fetch thumbnail via REST API
+  const cars = {
+    1:  { range: 259, rate: 4.49, name: 'Chevy Bolt EV',          chargeTime: 40,  wiki: 'Chevrolet_Bolt_EV' },
+    2:  { range: 290, rate: 4.09, name: 'Ford Mustang Mach-E',    chargeTime: 38,  wiki: 'Ford_Mustang_Mach-E' },
+    3:  { range: 274, rate: 4.36, name: 'Kia EV6 GT-Line',        chargeTime: 19,  wiki: 'Kia_EV6' },
+    4:  { range: 520, rate: 5.68, name: 'Lucid Air Dream Edition', chargeTime: 34, wiki: 'Lucid_Air' },
+    5:  { range: 215, rate: 4.49, name: 'Nissan Leaf SL Plus',    chargeTime: 44,  wiki: 'Nissan_Leaf' },
+    6:  { range: 314, rate: 2.68, name: 'Rivian R1T',             chargeTime: 40,  wiki: 'Rivian_R1T' },
+    7:  { range: 353, rate: 5.61, name: 'Tesla Model 3 LR',       chargeTime: 35,  wiki: 'Tesla_Model_3' },
+    8:  { range: 330, rate: 5.08, name: 'Tesla Model Y LR',       chargeTime: 27,  wiki: 'Tesla_Model_Y' },
+    9:  { range: 348, rate: 4.00, name: 'Tesla Model X',          chargeTime: 35,  wiki: 'Tesla_Model_X' },
+    10: { range: 250, rate: 3.96, name: 'Volkswagen ID.4',        chargeTime: 40,  wiki: 'Volkswagen_ID.4' },
+  };
+  const car = cars[carType];
+
+  // ── Derived parameters (mirrors R logic exactly) ──
+  let EV_charge = chargeHours * car.rate * chargerType;
+  if (weatherVal === 0) EV_charge *= 0.8;       // extreme heat
+  else if (weatherVal === 2) EV_charge *= 0.8;  // cold ~32F
+  else if (weatherVal === 3) EV_charge *= 0.54; // extreme cold ~4F
+
+  // as.integer() in R truncates toward zero
+  const EV_variability = Math.max(1, Math.trunc(variability));
+
+  const baseRange  = car.range;
+  const EV_maxrange = baseRange * (maxChargePct / 100);
+  const EV_minrange = baseRange * (minChargePct / 100);
+
+  // ── Monte Carlo sweep across mileage_min..mileage_max ──
+  const MILE_MIN = 10, MILE_MAX = 70;
+  const mileage_monte = [], L3stop_monte = [];
+
+  for (let x = MILE_MIN; x <= MILE_MAX; x++) {
+    let charging_probCount = 0, L3_stopTotal = 0;
+    for (let t = 0; t < trials; t++) {
+      const stops = milesSim(x, EV_maxrange, EV_charge, EV_variability, EV_minrange);
+      if (stops > 0) charging_probCount++;
+      L3_stopTotal += stops;
+    }
+    mileage_monte.push(charging_probCount);
+    L3stop_monte.push(L3_stopTotal / trials);
+  }
+
+  // ── Point results for the user's entered mileage ──
+  const dataIdx        = dailyMiles - MILE_MIN;
+  const prob_pct       = ((trials - mileage_monte[dataIdx]) / trials) * 100;
+  const L3_stops       = L3stop_monte[dataIdx];
+
+  // ── Update summary cards ──
+  document.getElementById('probability').textContent = prob_pct.toFixed(1);
+  document.getElementById('stops').textContent       = L3_stops.toFixed(2);
+  document.getElementById('prob-fill').style.width   = prob_pct + '%';
+  document.getElementById('card-prob').classList.add('has-data');
+  document.getElementById('card-stops').classList.add('has-data');
+
+  // ── Build chart data arrays ──
+  const probData = [], stopsData = [];
+  for (let i = 0; i <= MILE_MAX - MILE_MIN; i++) {
+    const miles = MILE_MIN + i;
+    probData.push({ x: miles, y: ((trials - mileage_monte[i]) / trials) * 100 });
+    stopsData.push({ x: miles, y: L3stop_monte[i] });
+  }
+
+  // ── Render charts ──
+  const milesLabel = dailyMiles + '';
+  document.getElementById('ph-stops').style.display = 'none';
+  document.getElementById('stops-wrap').style.display = 'block';
+  document.getElementById('stops-miles-label').textContent = milesLabel;
+  stopsChart = buildChart(
+    'stops-chart', stopsChart, stopsData,
+    'Avg Level 3 Stops',
+    '#B5651D',                        // vivid orange line
+    'rgba(181,101,29,0.28)',          // gradient top
+    'rgba(181,101,29,0.0)',           // gradient bottom
+    dailyMiles
+  );
+
+  document.getElementById('ph-prob').style.display = 'none';
+  document.getElementById('prob-wrap').style.display = 'block';
+  document.getElementById('prob-miles-label').textContent = milesLabel;
+  probChart = buildChart(
+    'prob-chart', probChart, probData,
+    'Probability Sufficient (%)',
+    '#6D597A',                        // vivid violet line
+    'rgba(109,89,122,0.28)',         // gradient top
+    'rgba(109,89,122,0.0)',          // gradient bottom
+    dailyMiles,
+    100                               // probability axis caps at 100%
+  );
+
+  // ── Car Info tab ──
+  document.getElementById('ph-car').style.display = 'none';
+  document.getElementById('car-info-content').style.display = 'block';
+  document.getElementById('ci-name').textContent  = car.name;
+  document.getElementById('ci-range').textContent = EV_maxrange.toFixed(0);
+  document.getElementById('ci-rate').textContent  = chargeHours > 0
+    ? (EV_charge / chargeHours).toFixed(2) : '—';
+  document.getElementById('ci-daily').textContent = EV_charge.toFixed(1);
+  // Photo — fetch thumbnail URL from Wikipedia REST API (CORS-enabled)
+  loadCarPhoto(car);
+
+  // ── Gas Comparison tab ──
+  const gas_stops = (dailyMiles * 31) / 350;
+  const gas_time  = gas_stops * 7.7;
+  const charge_time_total = 2.58 + L3_stops * car.chargeTime;
+
+  document.getElementById('ph-gas').style.display = 'none';
+  document.getElementById('gas-content').style.display = 'block';
+  document.getElementById('g-stops').textContent  = gas_stops.toFixed(2);
+  document.getElementById('g-time').textContent   = gas_time.toFixed(1);
+  document.getElementById('g-evtime').textContent = charge_time_total.toFixed(1);
+
+  document.getElementById('loading').classList.remove('active');
+  btn.disabled = false;
+}
+
+// =====================================================================
+// CAR PHOTO  — Wikipedia REST API thumbnail (CORS-enabled, no hotlink issues)
+// =====================================================================
+const photoCache = {};   // slug → image URL string (or null if failed)
+
+// Attach the handlers, then set src. Also covers the case where the browser
+// serves the file from its own cache synchronously and never fires onload.
+function showPhoto(img, wrap, url) {
+  img.onload  = () => img.classList.remove('loading');
+  img.onerror = () => { wrap.style.display = 'none'; };
+  img.src = url;
+  if (img.complete && img.naturalWidth) img.classList.remove('loading');
+}
+
+async function loadCarPhoto(car) {
+  const wrap  = document.getElementById('ci-photo').closest('.car-photo-wrap');
+  const img   = document.getElementById('ci-photo');
+  const slug  = car.wiki;
+
+  // Reset state — clear handlers BEFORE blanking src to avoid stale onerror firing
+  img.onload  = null;
+  img.onerror = null;
+  wrap.style.display = '';
+  img.classList.add('loading');
+  img.src = '';
+  img.alt = car.name;
+
+  // Use cache if available. Rebind the handlers BEFORE setting src: they were
+  // cleared above, and without them a cached photo loads but never has its
+  // .loading class (opacity:0) removed — the image is there but invisible.
+  if (photoCache[slug] !== undefined) {
+    if (photoCache[slug]) { showPhoto(img, wrap, photoCache[slug]); }
+    else { wrap.style.display = 'none'; }
+    return;
+  }
+
+  try {
+    const res  = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${slug}`);
+    const data = await res.json();
+    const url  = data?.thumbnail?.source || data?.originalimage?.source || null;
+    photoCache[slug] = url;
+    if (url) {
+      showPhoto(img, wrap, url);
+    } else {
+      wrap.style.display = 'none';
+    }
+  } catch {
+    photoCache[slug] = null;
+    wrap.style.display = 'none';
+  }
+}
+
+// =====================================================================
+// STANDARD MODE — photo loader for standard mode (shares photoCache)
+// =====================================================================
+async function loadCarPhotoStd(car) {
+  const wrap = document.getElementById('s-ci-photo').closest('.car-photo-wrap');
+  const img  = document.getElementById('s-ci-photo');
+  img.onload = null; img.onerror = null;
+  wrap.style.display = '';
+  img.classList.add('loading');
+  img.src = ''; img.alt = car.name;
+
+  if (photoCache[car.wiki] !== undefined) {
+    if (photoCache[car.wiki]) { showPhoto(img, wrap, photoCache[car.wiki]); }
+    else { wrap.style.display = 'none'; }
+    return;
+  }
+  try {
+    const res  = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${car.wiki}`);
+    const data = await res.json();
+    const url  = data?.thumbnail?.source || data?.originalimage?.source || null;
+    photoCache[car.wiki] = url;
+    if (url) { showPhoto(img, wrap, url); }
+    else { wrap.style.display = 'none'; }
+  } catch { photoCache[car.wiki] = null; wrap.style.display = 'none'; }
+}
+
+// =====================================================================
+// STANDARD MODE SIMULATION
+// Key differences from Advanced:
+//   • size = 4.28 exactly (NOT truncated — R passes float directly)
+//   • min range = 40 miles hardcoded (not a percentage of max)
+//   • max range = car's full EPA range (no charge-% cap)
+//   • Level 1 only — no charger multiplier, no weather adjustment
+// =====================================================================
+const STD_MIN_RANGE = 40;  // hardcoded 40-mile minimum, matches R code
+
+function milesSim_std(EV_meandriving, EV_maxrange, EV_charge) {
+  let counter  = 0;
+  let EV_range = EV_maxrange;
+
+  // size = 4.28 passed directly — R does NOT as.integer() this value
+  const dailyMileageSim = rnbinom(31, 4.28, EV_meandriving);
+
+  for (let i = 0; i < 31; i++) {
+    const daily_drive = dailyMileageSim[Math.floor(Math.random() * 31)];
+
+    EV_range -= daily_drive;
+
+    if (EV_range < STD_MIN_RANGE) EV_range = STD_MIN_RANGE;
+    if (EV_range === STD_MIN_RANGE) counter++;
+    if (EV_range === STD_MIN_RANGE) EV_range = EV_maxrange;
+    if (EV_range > EV_maxrange)  EV_range = EV_maxrange;
+
+    EV_range += EV_charge;
+    if (EV_range > EV_maxrange) EV_range = EV_maxrange;
+  }
+  return counter;
+}
+
+// Standard mode chart instances
+let sStopsChart = null, sProbChart = null;
+
+async function runStandardModel() {
+  const btn = document.getElementById('s-run-btn');
+  btn.disabled = true;
+  document.getElementById('loading').classList.add('active');
+  await new Promise(r => setTimeout(r, 60));
+
+  const carType    = parseInt(document.getElementById('s-car_type').value);
+  const dailyMiles = parseInt(document.getElementById('s-mileage').value);
+  const chargeHours = parseInt(document.getElementById('s-hours').value);
+  const trials     = parseInt(document.querySelector('input[name="s-iterations"]:checked').value);
+
+  // Same car database — full range, Level 1 rate only
+  const cars = {
+    1:  { range: 259, rate: 4.49, name: 'Chevy Bolt EV',          chargeTime: 40, wiki: 'Chevrolet_Bolt_EV' },
+    2:  { range: 290, rate: 4.09, name: 'Ford Mustang Mach-E',    chargeTime: 38, wiki: 'Ford_Mustang_Mach-E' },
+    3:  { range: 274, rate: 4.36, name: 'Kia EV6 GT-Line',        chargeTime: 19, wiki: 'Kia_EV6' },
+    4:  { range: 520, rate: 5.68, name: 'Lucid Air Dream Edition', chargeTime: 34, wiki: 'Lucid_Air' },
+    5:  { range: 215, rate: 4.49, name: 'Nissan Leaf SL Plus',    chargeTime: 44, wiki: 'Nissan_Leaf' },
+    6:  { range: 314, rate: 2.68, name: 'Rivian R1T',             chargeTime: 40, wiki: 'Rivian_R1T' },
+    7:  { range: 353, rate: 5.61, name: 'Tesla Model 3 LR',       chargeTime: 35, wiki: 'Tesla_Model_3' },
+    8:  { range: 330, rate: 5.08, name: 'Tesla Model Y LR',       chargeTime: 27, wiki: 'Tesla_Model_Y' },
+    9:  { range: 348, rate: 4.00, name: 'Tesla Model X',          chargeTime: 35, wiki: 'Tesla_Model_X' },
+    10: { range: 250, rate: 3.96, name: 'Volkswagen ID.4',        chargeTime: 40, wiki: 'Volkswagen_ID.4' },
+  };
+  const car = cars[carType];
+
+  // Standard mode: full range, Level 1 only, no weather adjustment
+  const EV_maxrange = car.range;                  // full EPA range — no % cap
+  const EV_charge   = chargeHours * car.rate;     // Level 1 only, no multiplier
+
+  const MILE_MIN = 10, MILE_MAX = 70;
+  const mileage_monte = [], L3stop_monte = [];
+
+  for (let x = MILE_MIN; x <= MILE_MAX; x++) {
+    let probCount = 0, stopTotal = 0;
+    for (let t = 0; t < trials; t++) {
+      const stops = milesSim_std(x, EV_maxrange, EV_charge);
+      if (stops > 0) probCount++;
+      stopTotal += stops;
+    }
+    mileage_monte.push(probCount);
+    L3stop_monte.push(stopTotal / trials);
+  }
+
+  const idx      = dailyMiles - MILE_MIN;
+  const prob_pct = ((trials - mileage_monte[idx]) / trials) * 100;
+  const L3_stops = L3stop_monte[idx];
+
+  // Results
+  document.getElementById('s-probability').textContent = prob_pct.toFixed(1);
+  document.getElementById('s-stops').textContent       = L3_stops.toFixed(2);
+  document.getElementById('s-prob-fill').style.width   = prob_pct + '%';
+  document.getElementById('s-card-prob').classList.add('has-data');
+  document.getElementById('s-card-stops').classList.add('has-data');
+
+  // Charts
+  const milesLabel = String(dailyMiles);
+  const probData  = [], stopsData = [];
+  for (let i = 0; i <= MILE_MAX - MILE_MIN; i++) {
+    const miles = MILE_MIN + i;
+    probData.push({ x: miles,  y: ((trials - mileage_monte[i]) / trials) * 100 });
+    stopsData.push({ x: miles, y: L3stop_monte[i] });
+  }
+
+  document.getElementById('s-ph-stops').style.display = 'none';
+  document.getElementById('s-stops-wrap').style.display = 'block';
+  document.getElementById('s-stops-miles-label').textContent = milesLabel;
+  sStopsChart = buildChart('s-stops-chart', sStopsChart, stopsData,
+    'Avg Level 3 Stops', '#B5651D', 'rgba(181,101,29,0.28)', 'rgba(181,101,29,0)', dailyMiles);
+
+  document.getElementById('s-ph-prob').style.display = 'none';
+  document.getElementById('s-prob-wrap').style.display = 'block';
+  document.getElementById('s-prob-miles-label').textContent = milesLabel;
+  sProbChart = buildChart('s-prob-chart', sProbChart, probData,
+    'Probability Sufficient (%)', '#2D6A4F', 'rgba(45,106,79,0.28)', 'rgba(45,106,79,0)', dailyMiles, 100);
+
+  // Car Info
+  document.getElementById('s-ph-car').style.display = 'none';
+  document.getElementById('s-car-info-content').style.display = 'block';
+  document.getElementById('s-ci-name').textContent  = car.name;
+  document.getElementById('s-ci-range').textContent = EV_maxrange;
+  document.getElementById('s-ci-rate').textContent  = chargeHours > 0
+    ? (EV_charge / chargeHours).toFixed(2) : '—';
+  document.getElementById('s-ci-daily').textContent = EV_charge.toFixed(1);
+  loadCarPhotoStd(car);
+
+  // Gas Comparison
+  const gas_stops = (dailyMiles * 31) / 350;
+  document.getElementById('s-ph-gas').style.display  = 'none';
+  document.getElementById('s-gas-content').style.display = 'block';
+  document.getElementById('s-g-stops').textContent   = gas_stops.toFixed(2);
+  document.getElementById('s-g-time').textContent    = (gas_stops * 7.7).toFixed(1);
+  document.getElementById('s-g-evtime').textContent  = (2.58 + L3_stops * car.chargeTime).toFixed(1);
+
+  document.getElementById('loading').classList.remove('active');
+  btn.disabled = false;
+}
+
+// =====================================================================
+// MODE SWITCHING
+// =====================================================================
+function switchMode(mode) {
+  document.getElementById('layout-adv').classList.toggle('active', mode === 'adv');
+  document.getElementById('layout-std').classList.toggle('active', mode === 'std');
+
+  document.getElementById('btn-adv').classList.toggle('active', mode === 'adv');
+  document.getElementById('btn-std').classList.toggle('active', mode === 'std');
+  document.getElementById('btn-std').classList.toggle('std', mode === 'std');
+
+  const badge = document.getElementById('mode-badge');
+  if (mode === 'std') {
+    badge.textContent = 'Standard';
+    badge.classList.add('std-badge');
+  } else {
+    badge.textContent = 'Advanced';
+    badge.classList.remove('std-badge');
+  }
+}
+
+// =====================================================================
+// UI WIRING
+// =====================================================================
+
+function switchTab(name, btn) {
+  // Only affect tabs in the same tab-card as the clicked button
+  const card = btn.closest('.tab-card');
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function switchStdTab(name, btn) {
+  const card = btn.closest('.tab-card');
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Slider live display — Advanced mode
+[
+  ['mileage',             'mileage-val',   v => v + ' mi'],
+  ['hours',               'hours-val',     v => v + ' hrs'],
+  ['max_chargepercentage','maxcharge-val', v => v + '%'],
+  ['min_chargepercentage','mincharge-val', v => v + '%'],
+  ['iterations',          'iter-val',      v => v],
+].forEach(([id, displayId, fmt]) => {
+  const el = document.getElementById(id);
+  const disp = document.getElementById(displayId);
+  el.addEventListener('input', () => { disp.textContent = fmt(el.value); });
+});
+
+// Slider live display — Standard mode
+[
+  ['s-mileage', 's-mileage-val', v => v + ' mi'],
+  ['s-hours',   's-hours-val',   v => v + ' hrs'],
+].forEach(([id, displayId, fmt]) => {
+  const el = document.getElementById(id);
+  const disp = document.getElementById(displayId);
+  el.addEventListener('input', () => { disp.textContent = fmt(el.value); });
+});
+
+// Radio pill active state (all modes)
+document.querySelectorAll('input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll(`input[name="${radio.name}"]`).forEach(r => {
+      r.closest('.radio-pill').classList.remove('active');
+    });
+    radio.closest('.radio-pill').classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
