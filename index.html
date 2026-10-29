@@ -1271,10 +1271,22 @@ img.bleed{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
 @media(max-width:900px){.cg-body{grid-template-columns:1fr;}}
 
 .rw-slide .rw-inner{position:absolute; inset:0; display:flex; flex-direction:column; padding:clamp(1rem,2.4vh,1.8rem) clamp(4.6rem,6vw,5.6rem) clamp(2.6rem,6vh,3.2rem);}
-.rw-fig{flex:1; min-height:0; margin:.4rem 0 0; display:flex; flex-direction:column; align-items:center; gap:.6rem;}
-.rw-card{position:relative; flex:1; min-height:0; width:min(100%, 62vh); background:#16171b; border-radius:12px; box-shadow:var(--shadow); outline:1px solid rgba(201,163,92,.45); outline-offset:-6px;}
+.rw-body{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:clamp(1rem,2.2vw,2rem); margin-top:.4rem;}
+.rw-fig{min-height:0; margin:0; display:flex; flex-direction:column; align-items:center; gap:.5rem;}
+.rw-card{position:relative; flex:1; min-height:0; width:100%; background:#16171b; border-radius:12px; box-shadow:var(--shadow); outline:1px solid rgba(201,163,92,.45); outline-offset:-6px;}
 .rw-card img{position:absolute; inset:14px; width:calc(100% - 28px); height:calc(100% - 28px); object-fit:contain; display:block;}
-.rw-fig figcaption{font:italic 400 clamp(.9rem,1.2vw,1.05rem) 'Merriweather',serif; color:#3b423f;}
+.rw-fig figcaption{font:italic 400 clamp(.82rem,1.1vw,.98rem) 'Merriweather',serif; color:#3b423f; text-align:center;}
+.rw-side{min-height:0; display:flex; flex-direction:column; justify-content:center; gap:.6rem;}
+.rw-q{font:900 clamp(1.15rem,1.9vw,1.6rem) 'Merriweather',serif; color:#1f2a2b;}
+.rw-facts{display:grid; grid-template-columns:1fr 1fr; gap:clamp(.45rem,1vh,.7rem);}
+.rw-f{display:flex; align-items:center; gap:.7rem; background:#fbf8f1; border:var(--t14-frame); outline:var(--t14-rule); outline-offset:-5px; border-radius:10px; box-shadow:var(--shadow);
+  padding:clamp(.5rem,1.2vh,.8rem) .8rem; transform:translateY(6px); transition:opacity .45s ease, transform .45s ease;}
+.rw-f.shown{transform:none;}
+.rw-f svg{width:clamp(2.2rem,3vw,2.8rem); flex:none;}
+.rw-f b{display:block; font:900 clamp(1.05rem,1.6vw,1.4rem)/1.15 'Merriweather',serif; color:var(--accent);}
+.rw-f span{display:block; font-size:clamp(.78rem,1.02vw,.92rem); line-height:1.35; color:#2b322f;}
+.rw-src{margin:.2rem 0 0; font:italic 400 clamp(.54rem,.7vw,.64rem)/1.4 'Merriweather',serif; color:#8c8d82;}
+@media(max-width:900px){.rw-body,.rw-facts{grid-template-columns:1fr;}}
 
 /* ════ Chapter 14 theme (ch14_theme.py) ════ */
 :root{
@@ -2109,8 +2121,13 @@ body{background:#1b211f;}
   <div class="slide-inner col rw-inner">
     <div class="eyebrow">14.1  ·  Solar Power: Advantages and Challenges</div>
     <h2 class="heading">Real world example:</h2>
-    <figure class="rw-fig"><div class="rw-card"><img data-src="media/image8.jpg" alt="One day of solar generation from a home rooftop system: 58.0 kWh in total, rising from about 6:30 a.m., peaking near 7 kW just after noon, and falling to zero by about 7 p.m."></div>
-      <figcaption>One day of production from a home rooftop solar system: 58.0 kWh, peaking near 7 kW just after noon.</figcaption></figure>
+    <div class="rw-body">
+      <figure class="rw-fig"><div class="rw-card"><img data-src="media/image8.jpg" alt="One day of solar generation from a home rooftop system: 58.0 kWh in total, rising from about 6:30 a.m., peaking near 7 kW just after noon, and falling to zero by about 7 p.m."></div>
+        <figcaption>One day of production from a home rooftop solar system: 58.0 kWh, peaking near 7 kW just after noon.</figcaption></figure>
+      <div class="rw-side"><div class="rw-q">What could 58 kWh power?</div><div class="rw-facts"><div class="rw-f stage-item"><svg viewBox="0 0 44 40"><path d="M5 22 Q5 15 11 14 L15 9 H27 L33 14 Q39 15 39 22 Z" fill="#cfe0d4" stroke="#2e2c25" stroke-width="1.5"/><circle cx="12" cy="23" r="3.4" fill="#2e2c25"/><circle cx="32" cy="23" r="3.4" fill="#2e2c25"/><path d="M21 10 l-3 5 h4 l-3 5" fill="none" stroke="#2e2c25" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>about 200 miles</b><span>of driving in an electric car</span></div></div><div class="rw-f stage-item"><svg viewBox="0 0 44 40"><path d="M6 21 L22 8 L38 21" fill="none" stroke="#2e2c25" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19 V34 H34 V19" fill="#f3e9d6" stroke="#2e2c25" stroke-width="1.5"/><rect x="19" y="25" width="7" height="9" fill="#c9a882" stroke="#2e2c25" stroke-width="1.2"/></svg><div><b>about 2 days</b><span>of all the electricity an average U.S. home uses</span></div></div><div class="rw-f stage-item"><svg viewBox="0 0 44 40"><path d="M16 26 Q11 20 12 15 a10 10 0 0 1 20 0 Q33 20 28 26 Z" fill="#f6e2a0" stroke="#2e2c25" stroke-width="1.5"/><path d="M17 30 h10 M18 34 h8" fill="none" stroke="#2e2c25" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>about 13 days</b><span>of light, nonstop, from 20 LED bulbs</span></div></div><div class="rw-f stage-item"><svg viewBox="0 0 44 40"><rect x="6" y="9" width="32" height="22" rx="3" fill="#e9eef0" stroke="#2e2c25" stroke-width="1.5"/><circle cx="22" cy="20" r="7" fill="none" stroke="#2f6f9a" stroke-width="1.4"/><path d="M22 13 v14 M15 20 h14" stroke="#2f6f9a" stroke-width="1.2"/></svg><div><b>about 17 hours</b><span>of a central air conditioner running</span></div></div><div class="rw-f stage-item"><svg viewBox="0 0 44 40"><rect x="12" y="5" width="20" height="30" rx="3" fill="#eef1ea" stroke="#2e2c25" stroke-width="1.5"/><path d="M12 15 H32 M28 9 v3 M28 19 v5" fill="none" stroke="#2e2c25" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>about 6 weeks</b><span>of a refrigerator</span></div></div><div class="rw-f stage-item"><svg viewBox="0 0 44 40"><rect x="15" y="5" width="14" height="28" rx="3" fill="#3b3f46" stroke="#2e2c25" stroke-width="1.5"/><path d="M21 9 h2" stroke="#9aa1ad" stroke-width="1.4"/><path d="M22 16 l-3 5 h5 l-3 5" fill="none" stroke="#e2aa3a" stroke-width="1.5"/></svg><div><b>about 4,000</b><span>smartphone charges</span></div></div></div>
+        <p class="rw-src">Estimates: an EV at about 29 kWh per 100 miles (EPA, fueleconomy.gov); an average U.S. home at about 29 kWh a day (EIA);
+        20 LED bulbs at 9 W; a central air conditioner at about 3.5 kW; a refrigerator at about 1.4 kWh a day (ENERGY STAR); about 15 Wh per phone charge.</p></div>
+    </div>
   </div>
   <div class="footer">© 2023 W. W. Norton &amp; Company, Inc.</div>
 </section>
