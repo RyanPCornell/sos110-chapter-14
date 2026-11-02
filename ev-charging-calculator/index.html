@@ -715,8 +715,43 @@
     /* Embed mode (?embed=1): hide the app's own header so a host slide's bar is the only header */
     body.embed header { display: none !important; }
     body.embed { padding-top: 0 !important; }
+
+    /* Parchment theme (?theme=parchment): matches the SOS 110 Chapter 14 deck when embedded there (Nov 1 2026).
+       Off by default, so the standalone app is unchanged. */
+    html.parchment {
+      --bg:#f6f1e4; --surface:#fbf8f1; --surface2:#fffdf8; --border:#e3d6ba; --border2:#d2c19c;
+      --accent:#2c6683; --green:#4a7638; --orange:#a5782c; --violet:#5c4f86;
+      --text:#1f2a2b; --text2:#3b3a33; --muted:#6b6a5e;
+    }
+    html.parchment body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); }
+    html.parchment .sidebar, html.parchment .result-card, html.parchment .tab-card {
+      box-shadow:0 1px 2px rgba(60,45,20,.06), 0 6px 18px rgba(60,45,20,.07); outline:1px solid rgba(165,120,44,.35); outline-offset:-6px; }
+    html.parchment .sidebar-title { color:#7a5c22; }
+    html.parchment .section-label::after { background:rgba(165,120,44,.25); }
+    html.parchment .run-btn { background:var(--accent); border-radius:999px; box-shadow:none; }
+    html.parchment .run-btn:hover { box-shadow:0 6px 18px rgba(44,102,131,.25); }
+    html.parchment .result-card::before, html.parchment .result-card.card-prob::before, html.parchment .result-card.card-std-prob::before { background:#2c6683; }
+    html.parchment .result-card.card-stops::before, html.parchment .result-card.card-std-stops::before { background:#a5782c; }
+    html.parchment .result-card .rc-value, html.parchment .card-prob .rc-value, html.parchment .card-stops .rc-value,
+    html.parchment .card-std-prob .rc-value, html.parchment .card-std-stops .rc-value {
+      font-family:'Merriweather',Georgia,serif; background:none; -webkit-text-fill-color:currentColor; color:#2c6683; }
+    html.parchment .card-stops .rc-value, html.parchment .card-std-stops .rc-value { color:#a5782c; }
+    html.parchment .prob-fill, html.parchment .prob-fill.std { background:#2c6683; }
+    html.parchment .tab-panel h3, html.parchment .chart-title { font-family:'Merriweather',Georgia,serif; color:#1f2a2b; }
+    html.parchment .info-tile { background:#fffdf8; }
+    html.parchment .info-tile .it-value { font-family:'Merriweather',Georgia,serif; }
+    html.parchment .slider-val, html.parchment .rc-unit { font-family:'Inter',sans-serif; }
+    html.parchment .mode-btn.active { background:rgba(44,102,131,.1); }
+    html.parchment .radio-pill.active { background:rgba(44,102,131,.08); }
+    html.parchment .container { grid-template-columns:300px minmax(0,1fr); gap:18px; padding:18px; }
+    html.parchment .main, html.parchment .results-row > * { min-width:0; }
   </style>
   <script>
+    // Parchment theme (?theme=parchment), set before first paint
+    if (new URLSearchParams(location.search).get('theme') === 'parchment') {
+      document.documentElement.classList.add('parchment');
+      var fl=document.createElement('link'); fl.rel='stylesheet'; fl.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@700;900&display=swap'; document.head.appendChild(fl);   // not render-blocking
+    }
     // Non-destructive embed mode: add body.embed when ?embed=1 is present
     if (new URLSearchParams(location.search).has('embed')) {
       document.addEventListener('DOMContentLoaded', function(){ document.body.classList.add('embed'); });
@@ -1359,6 +1394,7 @@ const refLinePlugin = {
 Chart.register(refLinePlugin);
 
 function buildChart(canvasId, existingChart, data, yLabel, lineColor, gradColor1, gradColor2, refMile, yMax) {
+  const PCH = document.documentElement.classList.contains('parchment');
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
   if (existingChart) existingChart.destroy();
@@ -1423,13 +1459,13 @@ function buildChart(canvasId, existingChart, data, yLabel, lineColor, gradColor1
           title: {
             display: true,
             text: 'Average Daily Miles Driven',
-            color: '#5B6B63',
-            font: { size: 11, weight: '600', family: 'Outfit' },
+            color: PCH ? '#6b6a5e' : '#5B6B63',
+            font: { size: 11, weight: '600', family: PCH ? 'Inter' : 'Outfit' },
             padding: { top: 8 }
           },
-          grid: { color: 'rgba(221,231,226,0.95)' },
+          grid: { color: PCH ? '#ece3cf' : 'rgba(221,231,226,0.95)' },
           ticks: {
-            color: '#5B6B63',
+            color: PCH ? '#6b6a5e' : '#5B6B63',
             font: { size: 11 },
             maxTicksLimit: 13
           }
@@ -1442,13 +1478,13 @@ function buildChart(canvasId, existingChart, data, yLabel, lineColor, gradColor1
           title: {
             display: true,
             text: yLabel,
-            color: '#5B6B63',
-            font: { size: 11, weight: '600', family: 'Outfit' },
+            color: PCH ? '#6b6a5e' : '#5B6B63',
+            font: { size: 11, weight: '600', family: PCH ? 'Inter' : 'Outfit' },
             padding: { bottom: 8 }
           },
-          grid: { color: 'rgba(221,231,226,0.95)' },
+          grid: { color: PCH ? '#ece3cf' : 'rgba(221,231,226,0.95)' },
           ticks: {
-            color: '#5B6B63',
+            color: PCH ? '#6b6a5e' : '#5B6B63',
             font: { size: 11 }
           }
         }

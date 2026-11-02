@@ -319,8 +319,51 @@
     /* Embed mode (?embed=1): hide the app's own header so a host slide's bar is the only header */
     body.embed header { display: none !important; }
     body.embed .wrapper { padding-top: 1.2rem !important; }
+
+    /* Parchment theme (?theme=parchment): matches the SOS 110 Chapter 14 deck when embedded there (Nov 1 2026).
+       Off by default, so the standalone app is unchanged. */
+    html.parchment {
+      --bg:#f6f1e4; --surface:#fbf8f1; --surface2:#fffdf8; --border:#dccfb2;
+      --accent:#2c6683; --green:#4a7638; --amber:#a5782c; --red:#9a4c2c;
+      --text:#1f2a2b; --muted:#6b6a5e; --glow:rgba(44,102,131,.14);
+    }
+    html.parchment body { font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--bg); }
+    html.parchment body::before, html.parchment .orb { display:none; }
+    html.parchment .tabs { background:#efe7d4; border-color:var(--border); }
+    html.parchment .tab-btn.active { background:#fffdf8; color:var(--text); box-shadow:0 1px 0 rgba(31,42,43,.08), inset 0 0 0 1px var(--border); }
+    html.parchment .card { box-shadow:0 1px 2px rgba(60,45,20,.06), 0 6px 18px rgba(60,45,20,.07); outline:1px solid rgba(165,120,44,.35); outline-offset:-6px; }
+    html.parchment .card-title { color:#7a5c22; }
+    html.parchment .card-title::before { background:#a5782c; }
+    html.parchment .stat-value, html.parchment .savings-amount, html.parchment .pill-rate { font-family:'Merriweather',Georgia,serif; letter-spacing:0; }
+    html.parchment .panel-vehicle { font-family:'Merriweather',Georgia,serif; }
+    html.parchment button.calc-btn { background:var(--accent); border-radius:999px; }
+    html.parchment button.calc-btn::after { display:none; }
+    html.parchment select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6a5e' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+    html.parchment .info-strip, html.parchment .utility-card { background:rgba(44,102,131,.05); border-color:rgba(44,102,131,.2); }
+    html.parchment .info-strip.gas-strip, html.parchment .gas-price-row { background:rgba(165,120,44,.06); border-color:rgba(165,120,44,.22); }
+    html.parchment .rate-pill.selected, html.parchment .rate-pill:has(input:checked) { background:rgba(44,102,131,.07); }
+    html.parchment .rate-pill.tou-pill.selected, html.parchment .rate-pill.tou-pill:has(input:checked) { border-color:#5c4f86; background:rgba(92,79,134,.07); }
+    html.parchment .rate-pill.tou-pill .pill-dot { background:#5c4f86; }
+    html.parchment .rate-pill.tou-pill.selected .pill-rate, html.parchment .rate-pill.tou-pill:has(input:checked) .pill-rate { color:#5c4f86; }
+    html.parchment .tou-badge { color:#5c4f86; background:rgba(92,79,134,.1); border-color:rgba(92,79,134,.3); }
+    html.parchment .stat-card.blue::before  { background:#2c6683; }
+    html.parchment .stat-card.green::before { background:#4a7638; }
+    html.parchment .stat-card.amber::before { background:#a5782c; }
+    html.parchment .stat-card.red::before   { background:#9a4c2c; }
+    html.parchment .breakdown-row, html.parchment .panel-row, html.parchment td { border-bottom-color:#eadfc8; }
+    html.parchment tr.highlight td { background:rgba(44,102,131,.06); }
+    html.parchment .savings-hero::before { background:radial-gradient(ellipse at 50% 0%,rgba(74,118,56,.08),transparent 70%); }
+    html.parchment .savings-hero.negative::before { background:radial-gradient(ellipse at 50% 0%,rgba(154,76,44,.08),transparent 70%); }
+    html.parchment .error-msg { background:rgba(154,76,44,.07); border-color:rgba(154,76,44,.3); }
+    html.parchment .toggle-track { background:#d8ccb1; }
+    .tou-found { color:#a371f7; } html.parchment .tou-found { color:#5c4f86; }
   </style>
   <script>
+    // Parchment theme (?theme=parchment), set before first paint
+    if (new URLSearchParams(location.search).get('theme') === 'parchment') {
+      document.documentElement.classList.add('parchment');
+      var fl=document.createElement('link'); fl.rel='stylesheet'; fl.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Merriweather:wght@700;900&display=swap'; document.head.appendChild(fl);   // not render-blocking
+    }
     // Non-destructive embed mode: add body.embed when ?embed=1 is present
     if (new URLSearchParams(location.search).has('embed')) {
       document.addEventListener('DOMContentLoaded', function(){ document.body.classList.add('embed'); });
@@ -1021,7 +1064,7 @@ function renderUtilityCard(tab, stateCode, utilityData, zip) {
   });
 
   const touNote = touOptions.length
-    ? `<span style="color:#a371f7;font-weight:600">${touOptions.length} off-peak rate${touOptions.length>1?'s':''} found</span> — select to use for calculations`
+    ? `<span class="tou-found" style="font-weight:600">${touOptions.length} off-peak rate${touOptions.length>1?'s':''} found</span> — select to use for calculations`
     : `<span style="color:var(--muted)">No TOU/off-peak rate detected for this zip</span>`;
 
   cardEl.innerHTML = `
@@ -1409,24 +1452,25 @@ async function calcComparison() {
   // ── comparison bar ──
   if (cmpBar2) cmpBar2.destroy();
   const ctx2 = document.getElementById('cmp-bar2').getContext('2d');
+  const PCH = document.documentElement.classList.contains('parchment');
   cmpBar2 = new Chart(ctx2, {
     type:'bar',
     data:{
       labels: ['Monthly Fuel Cost','Annual Fuel Cost','Cost per Mile (¢)'],
       datasets:[
-        { label: 'EV',  data:[+evCostMonth.toFixed(2), +evCostAnn.toFixed(2), +evCpm.toFixed(2)],  backgroundColor:'rgba(88,166,255,.7)', borderColor:'#58a6ff', borderWidth:1.5, borderRadius:6 },
-        { label: 'Gas', data:[+gasCostMonth.toFixed(2),+gasCostAnn.toFixed(2),+gasCpm.toFixed(2)], backgroundColor:'rgba(227,179,65,.7)', borderColor:'#e3b341', borderWidth:1.5, borderRadius:6 },
+        { label: 'EV',  data:[+evCostMonth.toFixed(2), +evCostAnn.toFixed(2), +evCpm.toFixed(2)],  backgroundColor:PCH?'rgba(44,102,131,.75)':'rgba(88,166,255,.7)', borderColor:PCH?'#2c6683':'#58a6ff', borderWidth:1.5, borderRadius:6 },
+        { label: 'Gas', data:[+gasCostMonth.toFixed(2),+gasCostAnn.toFixed(2),+gasCpm.toFixed(2)], backgroundColor:PCH?'rgba(165,120,44,.75)':'rgba(227,179,65,.7)', borderColor:PCH?'#a5782c':'#e3b341', borderWidth:1.5, borderRadius:6 },
       ]
     },
     options:{
       responsive:true, indexAxis:'y',
       plugins:{
-        legend:{labels:{color:'#8b949e'}},
+        legend:{labels:{color:PCH?'#3b3a33':'#8b949e'}},
         tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.x.toFixed(2)}` } }
       },
       scales:{
-        x:{ grid:{color:'rgba(48,54,61,.5)'}, ticks:{color:'#8b949e', callback:v=>'$'+v} },
-        y:{ grid:{color:'rgba(48,54,61,.5)'}, ticks:{color:'#8b949e'} }
+        x:{ grid:{color:PCH?'#eadfc8':'rgba(48,54,61,.5)'}, ticks:{color:PCH?'#6b6a5e':'#8b949e', callback:v=>'$'+v} },
+        y:{ grid:{color:PCH?'#eadfc8':'rgba(48,54,61,.5)'}, ticks:{color:PCH?'#3b3a33':'#8b949e'} }
       }
     }
   });
