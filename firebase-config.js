@@ -53,3 +53,6 @@ window.ATTENDANCE_FORM = {
     chapter: "entry.1270913812"
   }
 };
+
+// Exit-survey / question mailer (survey-mail.gs); only the instructor screen calls it
+window.SURVEY_MAIL_URL = "https://script.google.com/macros/s/AKfycbyrRNrQjbAiYugFw131rfJMIt2E2fneUnx9ryatdU98DMdyC4NkZI2LP8dnqQK3E2LZ/exec";

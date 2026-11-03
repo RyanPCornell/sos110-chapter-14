@@ -357,8 +357,50 @@
     html.parchment .error-msg { background:rgba(154,76,44,.07); border-color:rgba(154,76,44,.3); }
     html.parchment .toggle-track { background:#d8ccb1; }
     .tou-found { color:#a371f7; } html.parchment .tou-found { color:#5c4f86; }
+
+    /* Fit mode (?fit=1, Nov 2 2026): one slide frame, no page scrolling. Inputs stay on screen (the comparison form in two
+       columns); results open in an in-frame panel with tabs. Off by default, so the standalone page is unchanged. */
+    html.fit, html.fit body { height:100%; overflow:hidden; }
+    html.fit .wrapper { max-width:1100px; padding:.7rem 1rem !important; }
+    html.fit .tabs { margin-bottom:.7rem; padding:.3rem; } html.fit .tab-btn { padding:.45rem .8rem; }
+    html.fit .card { padding:1rem 1.2rem; margin-bottom:.7rem; }
+    html.fit .card-title { margin-bottom:.7rem; }
+    html.fit .form-grid { gap:.8rem; }
+    html.fit input, html.fit select { padding:.5rem .8rem; font-size:.9rem; }
+    html.fit .vs-divider { margin:.6rem 0 .5rem; }
+    html.fit .btn-row { margin-top:.8rem; } html.fit button.calc-btn { padding:.6rem 1rem; }
+    html.fit .info-strip { margin-top:.5rem; padding:.45rem .8rem; font-size:.8rem; }
+    html.fit .utility-card { margin-top:.6rem; padding:.6rem .8rem; }
+    html.fit .fit-cols { display:grid; grid-template-columns:.7fr 1.15fr 1fr; gap:1.2rem; align-items:start; }
+    html.fit .fit-cols > div:first-child .form-grid { grid-template-columns:1fr !important; gap:.6rem; }
+    html.fit .fit-cols > div:first-child .btn-row { margin-top:1rem; }
+    html.fit .hint { display:none; }
+    html.fit .rate-options { gap:.4rem; } html.fit .rate-pill { padding:.4rem .7rem; min-width:0; } html.fit .pill-rate { font-size:1rem; } html.fit .pill-sub { font-size:.66rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; } html.fit .utility-card > div[style] { margin-bottom:.35rem !important; }
+    html.fit .utility-header { margin-bottom:.4rem; } html.fit .gas-price-row { padding:.5rem .8rem; } html.fit .fit-cols > div > div[style*='margin-top'] { margin-top:.6rem !important; }
+    html.fit .fit-cols > div > .vs-divider:first-child { margin-top:.3rem; }
+    .fit-ov { display:none; }
+    html.fit .fit-ov.on { display:flex; position:fixed; inset:0; z-index:50; flex-direction:column; background:var(--bg); padding:.7rem 1rem; }
+    html.fit .fit-head { display:flex; align-items:center; gap:.6rem; margin-bottom:.6rem; flex:none; }
+    html.fit .fit-head b { font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-right:.4rem; }
+    html.fit .fit-tab { font:inherit; font-size:.82rem; font-weight:700; color:var(--muted); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:.35rem .9rem; cursor:pointer; }
+    html.fit .fit-tab.on { color:#fff; background:var(--accent); border-color:var(--accent); }
+    html.fit .fit-back { margin-left:auto; font:inherit; font-size:.82rem; font-weight:700; color:var(--accent); background:transparent; border:1.5px solid var(--accent); border-radius:999px; padding:.35rem .9rem; cursor:pointer; }
+    html.fit .fit-body { flex:1; min-height:0; overflow:auto; }
+    html.fit .fit-body > div { display:block !important; }
+    html.fit .fit-body [data-fit] { display:none !important; }
+    html.fit .fit-body[data-tab="a"] [data-fit="a"], html.fit .fit-body[data-tab="b"] [data-fit="b"], html.fit .fit-body[data-tab="c"] [data-fit="c"] { display:block !important; }
+    html.fit .fit-body[data-tab="a"] .results-grid[data-fit="a"] { display:grid !important; }
+    html.fit .fit-body[data-tab="a"] .compare-split[data-fit="a"] { display:grid !important; }
+    html.fit .fit-body .card { margin-bottom:.6rem; padding:1rem 1.2rem; }
+    html.fit .fit-body[data-tab="c"] #ev-results > .card:first-child, html.fit .fit-body[data-tab="b"] #ev-results > .card:first-child .card-title, html.fit .fit-body[data-tab="c"] #cmp-results > .card { display:none !important; }
+    html.fit .fit-body .savings-hero { padding:.8rem 1rem; margin-bottom:.6rem; } html.fit .fit-body .savings-amount { font-size:2.1rem; } html.fit .fit-body .savings-desc { margin-top:.3rem; font-size:.84rem; } html.fit .fit-body .savings-annual { margin-top:.4rem; }
+    html.fit .fit-body .compare-panel { padding:.8rem 1rem; } html.fit .fit-body .panel-row { padding:.22rem 0; font-size:.8rem; }
+    html.fit .fit-body .chart-wrap canvas { max-height:calc(100vh - 170px); }
+    html.fit .fit-body td, html.fit .fit-body th { padding:.3rem .6rem; font-size:.78rem; }
+    html.fit .fit-body .breakdown-row { padding:.22rem 0; font-size:.8rem; } html.fit .fit-body .breakdown { padding:.7rem 1rem; margin:.6rem 0 0; } html.fit .fit-body .breakdown-title { margin-bottom:.4rem; }
   </style>
   <script>
+    if (new URLSearchParams(location.search).has('fit')) document.documentElement.classList.add('fit');
     // Parchment theme (?theme=parchment), set before first paint
     if (new URLSearchParams(location.search).get('theme') === 'parchment') {
       document.documentElement.classList.add('parchment');
@@ -381,7 +423,7 @@
       EV Cost Calculator
     </div>
     <h1>Monthly Electricity Cost<br>for Your Electric Vehicle</h1>
-    <p class="subtitle">Enter your zip code, vehicle, and monthly mileage — we look up local utility and gas prices to calculate your real monthly cost.</p>
+    <p class="subtitle">Enter your zip code, vehicle, and monthly mileage — we look up local utility and gas prices to estimate your monthly electricity and gasoline cost.</p>
   </header>
 
   <!-- ── Tabs ── -->
@@ -584,7 +626,7 @@
 
       <!-- cost per mile chart -->
       <div class="card slide-up">
-        <div class="card-title">Cost Breakdown Comparison</div>
+        <div class="card-title">Fuel Cost Comparison (dollars)</div>
         <div class="chart-wrap" style="margin-bottom:0">
           <canvas id="cmp-bar2"></canvas>
         </div>
@@ -693,62 +735,62 @@ const EV_LIST = [
   {g:"Others",           v:"30|Polestar 2 (2023–24)"},
 ];
 
-// Gas cars: [mpg, label] — combined EPA
+// Gas cars: [mpg, label] — EPA combined mpg, checked on fueleconomy.gov Nov 2 2026 (base 2WD trim unless the label names one)
 const GAS_LIST = [
   // Sedans / Compacts
   {g:"Sedans & Compacts", v:"36|Honda Civic (2024)"},
   {g:"Sedans & Compacts", v:"35|Toyota Corolla (2024)"},
-  {g:"Sedans & Compacts", v:"33|Honda Accord (2024)"},
+  {g:"Sedans & Compacts", v:"32|Honda Accord (2024)"},
   {g:"Sedans & Compacts", v:"32|Toyota Camry (2024)"},
-  {g:"Sedans & Compacts", v:"30|Mazda3 (2024)"},
-  {g:"Sedans & Compacts", v:"29|Volkswagen Jetta (2024)"},
-  {g:"Sedans & Compacts", v:"28|Nissan Sentra (2024)"},
-  {g:"Sedans & Compacts", v:"28|Hyundai Elantra (2024)"},
-  {g:"Sedans & Compacts", v:"30|Kia Forte (2024)"},
+  {g:"Sedans & Compacts", v:"31|Mazda3 (2024)"},
+  {g:"Sedans & Compacts", v:"34|Volkswagen Jetta (2024)"},
+  {g:"Sedans & Compacts", v:"34|Nissan Sentra (2024)"},
+  {g:"Sedans & Compacts", v:"34|Hyundai Elantra (2024)"},
+  {g:"Sedans & Compacts", v:"32|Kia Forte (2024)"},
   {g:"Sedans & Compacts", v:"57|Toyota Prius (2024, Hybrid)"},
   {g:"Sedans & Compacts", v:"52|Honda Insight (2023, Hybrid)"},
   // Midsize / Full-size Sedans
-  {g:"Midsize Sedans",    v:"25|Nissan Altima (2024)"},
-  {g:"Midsize Sedans",    v:"24|Hyundai Sonata (2024)"},
-  {g:"Midsize Sedans",    v:"24|Kia K5 (2024)"},
-  {g:"Midsize Sedans",    v:"30|BMW 3 Series (2024)"},
-  {g:"Midsize Sedans",    v:"29|Mercedes-Benz C-Class (2024)"},
-  {g:"Midsize Sedans",    v:"28|Audi A4 (2024)"},
+  {g:"Midsize Sedans",    v:"31|Nissan Altima (2024)"},
+  {g:"Midsize Sedans",    v:"29|Hyundai Sonata (2024)"},
+  {g:"Midsize Sedans",    v:"31|Kia K5 (2024)"},
+  {g:"Midsize Sedans",    v:"29|BMW 3 Series (2024)"},
+  {g:"Midsize Sedans",    v:"30|Mercedes-Benz C-Class (2024)"},
+  {g:"Midsize Sedans",    v:"30|Audi A4 (2024)"},
   {g:"Midsize Sedans",    v:"26|Lexus ES (2024)"},
   {g:"Midsize Sedans",    v:"19|Dodge Charger V8 (2023)"},
-  {g:"Midsize Sedans",    v:"21|Ford Mustang V8 (2024)"},
+  {g:"Midsize Sedans",    v:"18|Ford Mustang V8 (2024)"},
   // SUVs / Crossovers
-  {g:"SUVs & Crossovers", v:"34|Toyota RAV4 Hybrid (2024)"},
+  {g:"SUVs & Crossovers", v:"39|Toyota RAV4 Hybrid (2024)"},
   {g:"SUVs & Crossovers", v:"30|Toyota RAV4 (2024)"},
-  {g:"SUVs & Crossovers", v:"32|Honda CR-V (2024)"},
-  {g:"SUVs & Crossovers", v:"31|Chevrolet Equinox (2024)"},
-  {g:"SUVs & Crossovers", v:"30|Subaru Outback (2024)"},
-  {g:"SUVs & Crossovers", v:"29|Mazda CX-5 (2024)"},
+  {g:"SUVs & Crossovers", v:"30|Honda CR-V (2024)"},
+  {g:"SUVs & Crossovers", v:"28|Chevrolet Equinox (2024)"},
+  {g:"SUVs & Crossovers", v:"28|Subaru Outback (2024)"},
+  {g:"SUVs & Crossovers", v:"28|Mazda CX-5 (2024)"},
   {g:"SUVs & Crossovers", v:"28|Hyundai Tucson (2024)"},
   {g:"SUVs & Crossovers", v:"28|Kia Sportage (2024)"},
-  {g:"SUVs & Crossovers", v:"27|Volkswagen Tiguan (2024)"},
-  {g:"SUVs & Crossovers", v:"26|Nissan Rogue (2024)"},
-  {g:"SUVs & Crossovers", v:"24|Toyota Highlander (2024)"},
-  {g:"SUVs & Crossovers", v:"24|Honda Pilot (2024)"},
+  {g:"SUVs & Crossovers", v:"26|Volkswagen Tiguan (2024)"},
+  {g:"SUVs & Crossovers", v:"33|Nissan Rogue (2024)"},
+  {g:"SUVs & Crossovers", v:"25|Toyota Highlander (2024)"},
+  {g:"SUVs & Crossovers", v:"22|Honda Pilot (2024)"},
   {g:"SUVs & Crossovers", v:"24|Ford Explorer (2024)"},
   {g:"SUVs & Crossovers", v:"22|Jeep Grand Cherokee (2024)"},
   {g:"SUVs & Crossovers", v:"20|Jeep Wrangler (2024)"},
   {g:"SUVs & Crossovers", v:"19|Land Rover Defender (2024)"},
-  {g:"SUVs & Crossovers", v:"26|Lexus RX (2024)"},
-  {g:"SUVs & Crossovers", v:"22|BMW X5 (2024)"},
+  {g:"SUVs & Crossovers", v:"25|Lexus RX (2024)"},
+  {g:"SUVs & Crossovers", v:"25|BMW X5 (2024)"},
   // Trucks & Vans
-  {g:"Trucks & Vans",     v:"24|Ford F-150 2.7L EcoBoost (2024)"},
-  {g:"Trucks & Vans",     v:"20|Ford F-150 5.0L V8 (2024)"},
-  {g:"Trucks & Vans",     v:"23|Chevrolet Silverado 1500 4-cyl (2024)"},
-  {g:"Trucks & Vans",     v:"20|Chevrolet Silverado 1500 V8 (2024)"},
+  {g:"Trucks & Vans",     v:"21|Ford F-150 2.7L EcoBoost (2024)"},
+  {g:"Trucks & Vans",     v:"19|Ford F-150 5.0L V8 (2024)"},
+  {g:"Trucks & Vans",     v:"20|Chevrolet Silverado 1500 4-cyl (2024)"},
+  {g:"Trucks & Vans",     v:"18|Chevrolet Silverado 1500 V8 (2024)"},
   {g:"Trucks & Vans",     v:"22|RAM 1500 eTorque (2024)"},
-  {g:"Trucks & Vans",     v:"19|RAM 1500 V8 (2024)"},
-  {g:"Trucks & Vans",     v:"22|Toyota Tacoma (2024)"},
-  {g:"Trucks & Vans",     v:"19|Toyota Tundra (2024)"},
+  {g:"Trucks & Vans",     v:"20|RAM 1500 V8 (2024)"},
+  {g:"Trucks & Vans",     v:"23|Toyota Tacoma (2024)"},
+  {g:"Trucks & Vans",     v:"20|Toyota Tundra (2024)"},
   {g:"Trucks & Vans",     v:"20|GMC Sierra 1500 (2024)"},
-  {g:"Trucks & Vans",     v:"28|Honda Odyssey (2024)"},
-  {g:"Trucks & Vans",     v:"27|Chrysler Pacifica (2024)"},
-  {g:"Trucks & Vans",     v:"25|Toyota Sienna Hybrid (2024)"},
+  {g:"Trucks & Vans",     v:"22|Honda Odyssey (2024)"},
+  {g:"Trucks & Vans",     v:"22|Chrysler Pacifica (2024)"},
+  {g:"Trucks & Vans",     v:"36|Toyota Sienna Hybrid (2024)"},
 ];
 
 // Comparison EVs for the EV-only tab compare table
@@ -909,18 +951,26 @@ function processOpenEIRates(items) {
   function getRateInfo(it) {
     const struct = it.energyratestructure;
     if (!Array.isArray(struct) || !struct.length) return null;
-    const periodRates = struct.map(period => {
-      if (!Array.isArray(period)) return null;
+    // Nov 2026 review fixes: each period's FIRST tier is used, PLUS its adjustment (OpenEI "adj", e.g. fuel or rider
+    // charges); the plan average weights each period by the hours it covers in the weekday/weekend schedules (all 12 months)
+    const hrs = {};
+    [[it.energyweekdayschedule, 5], [it.energyweekendschedule, 2]].forEach(([sch, w]) => {
+      if (Array.isArray(sch)) sch.forEach(m => Array.isArray(m) && m.forEach(p => { hrs[p] = (hrs[p] || 0) + w; }));
+    });
+    const rated = [];
+    struct.forEach((period, idx) => {
+      if (!Array.isArray(period)) return;
       const tier = period.find(t => t && typeof t.rate === 'number' && t.unit !== 'kW');
-      return (tier && tier.rate > 0.02 && tier.rate < 1.5) ? tier.rate : null;
-    }).filter(r => r !== null);
-    if (!periodRates.length) return null;
-    return {
-      periods: periodRates,
-      min: Math.min(...periodRates),
-      max: Math.max(...periodRates),
-      avg: periodRates.reduce((a,b)=>a+b,0) / periodRates.length
-    };
+      if (!tier) return;
+      const r = tier.rate + (typeof tier.adj === 'number' ? tier.adj : 0);
+      if (r > 0.02 && r < 1.5) rated.push({ idx, r });
+    });
+    if (!rated.length) return null;
+    const periodRates = rated.map(x => x.r);
+    const wsum = rated.reduce((a, x) => a + (hrs[x.idx] || 0), 0);
+    const avg = wsum > 0 ? rated.reduce((a, x) => a + x.r * (hrs[x.idx] || 0), 0) / wsum
+                         : periodRates.reduce((a, b) => a + b, 0) / periodRates.length;
+    return { periods: periodRates, rated, min: Math.min(...periodRates), max: Math.max(...periodRates), avg };
   }
 
   // Parse off-peak hours from TOU schedule
@@ -945,7 +995,7 @@ function processOpenEIRates(items) {
         prev = offHours[i];
       }
       const fh = h => h===0||h===24 ? '12 AM' : h===12 ? '12 PM' : h<12 ? `${h} AM` : `${h-12} PM`;
-      return ranges.map(([a,b]) => `${fh(a)}–${fh(b+1)}`).join(', ');
+      return ranges.map(([a,b]) => `${fh(a)}–${fh(b+1)}`).join(', ') + ' (summer weekdays)';
     } catch { return null; }
   }
 
@@ -977,12 +1027,7 @@ function processOpenEIRates(items) {
 
     // Find which period index has the minimum rate
     const struct = it.energyratestructure;
-    const periodRatesRaw = struct.map(period => {
-      if (!Array.isArray(period)) return Infinity;
-      const tier = period.find(t => t && typeof t.rate === 'number');
-      return tier ? tier.rate : Infinity;
-    });
-    const minPeriodIdx = periodRatesRaw.indexOf(Math.min(...periodRatesRaw));
+    const minPeriodIdx = info.rated.reduce((b, x) => x.r < b.r ? x : b).idx;
 
     const offPeakHours = parseOffPeakHours(it, minPeriodIdx);
     touOptions.push({
@@ -1284,7 +1329,7 @@ async function calcEV() {
   const rateCents = getSelectedElecCents('ev', stateCode);
   const rateSource = rateState['ev']?.cents
     ? `selected rate for ${zip}`
-    : (stateCode ? `EIA 2025 average for ${STATE_NAMES[stateCode]}` : 'US national average');
+    : (stateCode ? `EIA state average for ${STATE_NAMES[stateCode]}, Feb 2025` : 'US national average');
 
   const kwhMonth  = (miles / 100) * kwh100;
   const costMonth = kwhMonth * (rateCents / 100);
@@ -1385,7 +1430,7 @@ async function calcComparison() {
       gasPriceSource = `EIA live weekly, ${scope}, week of ${eiaResult.period}`;
     } else {
       gasDollar = stateCode && GAS_PRICES[stateCode] ? GAS_PRICES[stateCode] : 3.20;
-      gasPriceSource = `${stateCode ? STATE_NAMES[stateCode] : 'US'} state estimate (no EIA live data — enter your local price for accuracy)`;
+      gasPriceSource = `${stateCode ? STATE_NAMES[stateCode] : 'US'} estimate from EIA prices for the week of May 26, 2025 (no live data — enter your local price for accuracy)`;
     }
   }
 
@@ -1440,14 +1485,15 @@ async function calcComparison() {
   document.getElementById('cmp-gas-annual').textContent  = fmt$(gasCostAnn);
 
   // ── source note ──
-  const elecSource = rateState['cmp']?.cents ? 'selected rate plan, see card above' : `${stateLabel} state average`;
+  const elecSource = rateState['cmp']?.cents ? 'selected utility plan: first-tier rate plus adjustments, time periods weighted by hours; confirm your plan and season' : `${stateLabel} EIA state average, Feb 2025`;
   document.getElementById('cmp-source-note').innerHTML =
     `Electricity: <strong>${elecCents.toFixed(1)}¢/kWh</strong> (${elecSource}) · ` +
     `Gas: <strong>$${gasDollar.toFixed(2)}/gal</strong> (${gasPriceSource}). ` +
     `EV efficiency from <a href="https://www.fueleconomy.gov/feg/evSelect.jsp" target="_blank">fueleconomy.gov</a>; ` +
     `gas MPG from EPA. EPA figures are idealized — real-world use rises in cold weather for both. ` +
     `Live gas prices (EIA) cover only select states & metros; for an exact local price, toggle "Enter my local price" ` +
-    `using <a href="https://www.gasbuddy.com" target="_blank">GasBuddy</a> or <a href="https://gasprices.aaa.com" target="_blank">AAA</a>.`;
+    `using <a href="https://www.gasbuddy.com" target="_blank">GasBuddy</a> or <a href="https://gasprices.aaa.com" target="_blank">AAA</a>. ` +
+    `Fuel and electricity only: purchase price, insurance, maintenance and other ownership costs are not included.`;
 
   // ── comparison bar ──
   if (cmpBar2) cmpBar2.destroy();
@@ -1456,10 +1502,10 @@ async function calcComparison() {
   cmpBar2 = new Chart(ctx2, {
     type:'bar',
     data:{
-      labels: ['Monthly Fuel Cost','Annual Fuel Cost','Cost per Mile (¢)'],
+      labels: ['Monthly fuel cost ($)','Annual fuel cost ($)'],
       datasets:[
-        { label: 'EV',  data:[+evCostMonth.toFixed(2), +evCostAnn.toFixed(2), +evCpm.toFixed(2)],  backgroundColor:PCH?'rgba(44,102,131,.75)':'rgba(88,166,255,.7)', borderColor:PCH?'#2c6683':'#58a6ff', borderWidth:1.5, borderRadius:6 },
-        { label: 'Gas', data:[+gasCostMonth.toFixed(2),+gasCostAnn.toFixed(2),+gasCpm.toFixed(2)], backgroundColor:PCH?'rgba(165,120,44,.75)':'rgba(227,179,65,.7)', borderColor:PCH?'#a5782c':'#e3b341', borderWidth:1.5, borderRadius:6 },
+        { label: 'EV',  data:[+evCostMonth.toFixed(2), +evCostAnn.toFixed(2)],  backgroundColor:PCH?'rgba(44,102,131,.75)':'rgba(88,166,255,.7)', borderColor:PCH?'#2c6683':'#58a6ff', borderWidth:1.5, borderRadius:6 },
+        { label: 'Gas', data:[+gasCostMonth.toFixed(2),+gasCostAnn.toFixed(2)], backgroundColor:PCH?'rgba(165,120,44,.75)':'rgba(227,179,65,.7)', borderColor:PCH?'#a5782c':'#e3b341', borderWidth:1.5, borderRadius:6 },
       ]
     },
     options:{
@@ -1478,6 +1524,58 @@ async function calcComparison() {
   document.getElementById('cmp-results').style.display = 'block';
   document.getElementById('cmp-results').scrollIntoView({behavior:'smooth',block:'start'});
 }
+</script>
+<script>
+// Fit mode (?fit=1): rearrange for one slide frame. Results open in an in-frame panel with tabs instead of below the form.
+(function(){
+  if (!document.documentElement.classList.contains('fit')) return;
+  // the comparison form in three columns: ZIP, miles and the button | the EV and its rate plans | the gas car and its price
+  var card = document.querySelector('#tab-compare .card'), divs = card.querySelectorAll('.vs-divider');
+  if (divs.length === 2) {
+    var cols = document.createElement('div'); cols.className = 'fit-cols';
+    var c0 = document.createElement('div'), a = document.createElement('div'), b = document.createElement('div');
+    cols.appendChild(c0); cols.appendChild(a); cols.appendChild(b);
+    var fg = card.querySelector('.form-grid'), btn = card.querySelector('.btn-row'), err = document.getElementById('cmp-error');
+    card.insertBefore(cols, fg); c0.appendChild(fg);
+    var n = divs[0], stop = divs[1];
+    while (n && n !== stop) { var nx = n.nextElementSibling; a.appendChild(n); n = nx; }
+    n = stop;
+    while (n && n !== btn) { var nx2 = n.nextElementSibling; b.appendChild(n); n = nx2; }
+    c0.appendChild(btn); if (err) c0.appendChild(err);
+  }
+  // tag result pieces with their tab
+  var ev = document.getElementById('ev-results'), cmp = document.getElementById('cmp-results');
+  var c1 = ev.children[0], c2 = ev.children[1];
+  c1.querySelector('.results-grid').setAttribute('data-fit', 'a');
+  c1.querySelector('.card-title').setAttribute('data-fit', 'a');
+  c1.querySelector('.breakdown').setAttribute('data-fit', 'a');
+  c1.querySelector('.source-note').setAttribute('data-fit', 'b');
+  c2.setAttribute('data-fit', 'c');
+  document.getElementById('savings-hero').setAttribute('data-fit', 'a');
+  cmp.querySelector('.compare-split').setAttribute('data-fit', 'a');
+  cmp.querySelector('.card').setAttribute('data-fit', 'b');
+  document.getElementById('cmp-source-note').setAttribute('data-fit', 'c');
+  var ov = document.createElement('div'); ov.className = 'fit-ov';
+  ov.innerHTML = '<div class="fit-head"><b data-ft></b><span data-fts></span><button type="button" class="fit-back">&#8592; Back to inputs</button></div><div class="fit-body" data-tab="a"></div>';
+  document.body.appendChild(ov);
+  var body = ov.querySelector('.fit-body');
+  var TABS = { ev: [['a', 'Monthly cost'], ['c', 'Other EVs'], ['b', 'Sources and assumptions']],
+               cmp: [['a', 'Savings'], ['b', 'Chart'], ['c', 'Sources and assumptions']] };
+  function show(which) {
+    body.innerHTML = ''; body.appendChild(which === 'ev' ? ev : cmp); body.setAttribute('data-tab', 'a');
+    ov.querySelector('[data-ft]').textContent = which === 'ev' ? 'Your EV' : 'EV vs. gas';
+    ov.querySelector('[data-fts]').innerHTML = TABS[which].map(function (t, i) {
+      return '<button type="button" class="fit-tab' + (i ? '' : ' on') + '" data-k="' + t[0] + '">' + t[1] + '</button>'; }).join(' ');
+    [].forEach.call(ov.querySelectorAll('.fit-tab'), function (b) { b.onclick = function () {
+      body.setAttribute('data-tab', b.getAttribute('data-k'));
+      [].forEach.call(ov.querySelectorAll('.fit-tab'), function (x) { x.classList.toggle('on', x === b); });
+      window.dispatchEvent(new Event('resize')); }; });
+    ov.classList.add('on'); }
+  ov.querySelector('.fit-back').onclick = function () { ov.classList.remove('on'); };
+  // the calculators reveal results by setting style.display = 'block'
+  [[ev, 'ev'], [cmp, 'cmp']].forEach(function (p) {
+    new MutationObserver(function () { if (p[0].style.display === 'block') show(p[1]); }).observe(p[0], { attributes: true, attributeFilter: ['style'] }); });
+})();
 </script>
 </body>
 </html>

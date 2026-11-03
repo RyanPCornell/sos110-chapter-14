@@ -745,9 +745,38 @@
     html.parchment .radio-pill.active { background:rgba(44,102,131,.08); }
     html.parchment .container { grid-template-columns:300px minmax(0,1fr); gap:18px; padding:18px; }
     html.parchment .main, html.parchment .results-row > * { min-width:0; }
+    /* Fit mode (?fit=1, Nov 2 2026): the whole tool fits one slide frame with no page scrolling. The controls flow into two
+       columns; the results and the chart tabs fill the rest of the height. Off by default. */
+    html.fit, html.fit body { height:100%; overflow:hidden; }
+    html.fit body { font-size:12.5px; line-height:1.45; }
+    html.fit .mode-layout.active { height:100vh; }
+    html.fit .container { height:100vh; box-sizing:border-box; max-width:none; grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr); gap:14px; padding:12px 14px; }
+    html.fit .sidebar { position:static; height:100%; box-sizing:border-box; overflow:hidden; column-count:2; column-gap:18px; column-fill:balance; padding:12px 14px; }
+    html.fit .sidebar-title { column-span:all; margin-bottom:6px; }
+    html.fit .sidebar > * { break-inside:avoid; }
+    html.fit .section-label { margin:8px 0 5px; }
+    html.fit .form-group, html.fit .slider-group, html.fit .radio-group, html.fit .speed-radio { margin-bottom:7px; }
+    html.fit .radio-pill { padding:4px 9px; }
+    html.fit .divider { margin:8px 0; }
+    html.fit .run-btn { padding:9px 12px; }
+    html.fit .run-hint { margin-top:4px; font-size:.68rem; }
+    html.fit .main { height:100%; min-height:0; display:flex; flex-direction:column; gap:10px; }
+    html.fit .results-row { gap:10px; flex:none; }
+    html.fit .result-card { padding:8px 12px; } html.fit .result-card .rc-label { margin-bottom:2px; } html.fit .result-card .rc-unit { font-size:.7rem; }
+    html.fit .result-card .rc-value { font-size:1.55rem; }
+    html.fit .tab-card { flex:1; min-height:0; display:flex; flex-direction:column; }
+    html.fit .tab-nav { flex:none; }
+    html.fit .tab-btn { padding:8px 9px; font-size:.74rem; }
+    html.fit .tab-content { flex:1; min-height:0; overflow:auto; padding:12px 14px; }
+    html.fit .tab-panel p, html.fit .tab-panel li { font-size:.76rem; line-height:1.45; margin-bottom:5px; }
+    html.fit .tab-panel h3 { font-size:.9rem; margin:8px 0 5px; }
+    html.fit .chart-wrapper { padding:10px 12px 8px; } html.fit .chart-wrapper canvas { max-height:calc(100vh - 262px) !important; }
   </style>
   <script>
     // Parchment theme (?theme=parchment), set before first paint
+    if (new URLSearchParams(location.search).has('fit')) { document.documentElement.classList.add('fit');
+      document.addEventListener('DOMContentLoaded', function(){ [].forEach.call(document.querySelectorAll('.sidebar .section-label'), function(l){ if(/conditions/i.test(l.textContent)) l.style.breakBefore='column'; });
+        document.addEventListener('click', function(e){ if(e.target.closest && e.target.closest('.tab-btn')) setTimeout(function(){ try{ Object.values(Chart.instances).forEach(function(c){ c.resize(); }); }catch(x){} }, 60); }); }); }
     if (new URLSearchParams(location.search).get('theme') === 'parchment') {
       document.documentElement.classList.add('parchment');
       var fl=document.createElement('link'); fl.rel='stylesheet'; fl.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@700;900&display=swap'; document.head.appendChild(fl);   // not render-blocking
